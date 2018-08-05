@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include
+		resource="org/springframework/boot/logging/logback/defaults.xml" />
+
+	<springProfile name="dev, test">
+		<property name="CONSOLE_LOG_PATTERN"
+			value="%d{HH:mm:ss.SSS} %5p %20.20logger{19} : %m%n%wEx" />
+		<include
+			resource="org/springframework/boot/logging/logback/console-appender.xml" />
+		<root level="INFO">
+			<appender-ref ref="CONSOLE" />
+		</root>
+	</springProfile>
+
+	<springProfile name="prod">
+		<include
+			resource="org/springframework/boot/logging/logback/console-appender.xml" />
+		<include
+			resource="org/springframework/boot/logging/logback/file-appender.xml" />
+		<property name="AUDIT_LOG_FILE"
+			value="${AUDIT_LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/audit.log}" />
+		<appender name="ROLLING-FILE-AUDIT"
+			class="ch.qos.logback.core.rolling.RollingFileAppender">
+			<encoder>
+				<pattern>%m%n%wEx</pattern>
+			</encoder>
+			<file>${AUDIT_LOG_FILE}</file>
+			<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<fileNamePattern>${AUDIT_LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
+				</fileNamePattern>
+				<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+					<maxFileSize>10MB</maxFileSize>
+				</timeBasedFileNamingAndTriggeringPolicy>
+			</rollingPolicy>
+		</appender>
+
+		<logger name="AUDIT_LOG" level="TRACE" additivity="false">
+			<appender-ref ref="ROLLING-FILE-AUDIT" />
+		</logger>
+		<root level="INFO">
+			<appender-ref ref="CONSOLE" />
+			<appender-ref ref="FILE" />
+		</root>
+	</springProfile>
+</configuration>

@@ -1,0 +1,35 @@
+debug: false
+
+logging:
+  level:
+    org.springframework: warn
+    org.vaulttec: info
+
+sync:
+  rate: 3000
+
+idp:
+  factory: org.vaulttec.idm.sync.idp.keycloak.KeycloakFactory
+  config:
+    serverUrl: http://torstens-macbook-pro.local:8080/auth
+    realm: sso
+    client:
+      id: idm-sync
+      secret: 47cae011-870e-4727-a5f0-1f92323bf829
+    perPage: 100
+
+apps:
+  - factory: org.vaulttec.idm.sync.app.gitlab.GitLabFactory
+    config:
+      serverUrl: http://torstens-macbook-pro.local:8083
+      privateToken: d9FPuic1fFd-gzNvpmw4
+      group:
+        search: "%_GIT_%"
+        regExp: .*_GIT_(?<groupPath>\w*)_(?<permission>\w*)
+      sync:
+        excludedUsers: root, ghost
+        removeProjectMembers: true
+      provider:
+        name: ldapmain
+        uidAttribute: LDAP_ENTRY_DN
+      perPage: 100

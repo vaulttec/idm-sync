@@ -1,0 +1,87 @@
+{"properties": [
+  {
+    "name": "proxy.host",
+    "type": "java.lang.String",
+    "description": "Internet proxy host name"
+  },
+  {
+    "name": "proxy.port",
+    "type": "java.lang.Integer",
+    "description": "Internet proxy port"
+  },
+  {
+    "name": "sync.rate",
+    "type": "java.lang.Long",
+    "description": "Fixed rate (in msec) the sync task is scheduled"
+  },
+  {
+    "name": "keycloak.server-url",
+    "type": "java.lang.String",
+    "description": "URL of Keycloak server"
+  },
+  {
+    "name": "keycloak.realm",
+    "type": "java.lang.String",
+    "description": "Security realm in Keycloak"
+  },
+  {
+    "name": "keycloak.client.id",
+    "type": "java.lang.String",
+    "description": "ID of client in Keycloak realm"
+  },
+  {
+    "name": "keycloak.client.secret",
+    "type": "java.lang.String",
+    "description": "Secret of client in Keycloak realm"
+  },
+  {
+    "name": "keycloak.per-page",
+    "type": "java.lang.Integer",
+    "description": "Number of entries per page in REST API calls"
+  },
+  {
+    "name": "gitlab.server-url",
+    "type": "java.lang.String",
+    "description": "URL of GitLab server"
+  },
+  {
+    "name": "gitlab.private-token",
+    "type": "java.lang.String",
+    "description": "Private access token of user with admin permission in GitLab"
+  },
+  {
+    "name": "gitlab.per-page",
+    "type": "java.lang.Integer",
+    "description": "Number of entries per page in REST API calls"
+  },
+  {
+    "name": "gitlab.group.search",
+    "type": "java.lang.String",
+    "description": "IDP-specific pattern (with optional wildcard character '%') used in IDP group search"
+  },
+  {
+    "name": "gitlab.group.reg-exp",
+    "type": "java.lang.String",
+    "description": "Java RegExp pattern to extract the following named groups from IDP group name: 'group' path of GitLab group, 'permission' name of GitLab permission"
+  },
+  {
+    "name": "gitlab.sync.excluded-users",
+    "type": "java.lang.String",
+    "description": "Comma-seperated list of GitLab user names to be excluded from syncing"
+  },
+  {
+    "name": "gitlab.sync.remove-project-members",
+    "type": "java.lang.Boolean",
+    "description": "Remove all project members which are no group members"
+  },
+  {
+    "name": "gitlab.provider.name",
+    "type": "java.lang.String",
+    "description": "ID of GitLab provider, e.g. 'ldapmain' for the LDAP provider 'main'"
+  },
+  {
+    "name": "gitlab.provider.uid-attribute",
+    "type": "java.lang.String",
+    "description": "Name of IDP user attribute which holds the UID of the external federation provider, e.g. 'LDAP_ENTRY_DN' for Keycloak's LDAP user federation provider"
+  }
+]}

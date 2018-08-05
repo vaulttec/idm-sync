@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: idm-sync
+  main:
+    banner-mode: "off"
+
+logging:
+  level:
+    org.springframework: info
+    org.vaulttec: info
+
+proxy:
+  host:
+  port: 3128
+
+sync:
+  rate: 600000  # 10 min
+  enabledApps:
+  - "*"
