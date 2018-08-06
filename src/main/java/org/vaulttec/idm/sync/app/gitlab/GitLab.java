@@ -39,8 +39,8 @@ public class GitLab extends AbstractApplication {
   protected static final String DUMMY_EMAIL_DOMAIN = "@b.c";
 
   private final GitLabClient client;
-  private boolean removeProjectMembers;
   private final Set<String> excludedUsers;
+  private boolean removeProjectMembers;
   private final String providerName;
   private final String providerUidAttribute;
 
@@ -69,7 +69,7 @@ public class GitLab extends AbstractApplication {
   public boolean sync(List<IdpGroup> idpGroups) {
     Map<String, GLGroup> targetGroups = new HashMap<>();
     Map<String, GLUser> targetUsers = new HashMap<>();
-    retrieveGroupsAndGroups(idpGroups, targetGroups, targetUsers);
+    retrieveGroupsAndUsers(idpGroups, targetGroups, targetUsers);
     Map<String, GLUser> syncedUsers = syncUsers(targetUsers);
     if (syncedUsers != null) {
       if (syncGroups(targetGroups, syncedUsers)) {
@@ -219,7 +219,7 @@ public class GitLab extends AbstractApplication {
     }
   }
 
-  protected void retrieveGroupsAndGroups(List<IdpGroup> idpGroups, Map<String, GLGroup> glGroups,
+  protected void retrieveGroupsAndUsers(List<IdpGroup> idpGroups, Map<String, GLGroup> glGroups,
       Map<String, GLUser> glUsers) {
     for (IdpGroup idpGroup : idpGroups) {
       LOG.debug("Converting IDP group '{}'", idpGroup.getPath());
