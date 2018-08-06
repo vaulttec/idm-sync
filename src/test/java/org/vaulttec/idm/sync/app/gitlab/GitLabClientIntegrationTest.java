@@ -53,7 +53,7 @@ public class GitLabClientIntegrationTest {
   public void setup() {
     GitLabClientBuilder builder = new GitLabClientBuilder(env.getProperty("apps[0].config.serverUrl"))
         .perPage(Integer.parseInt(env.getProperty("apps[0].config.perPage")))
-        .privateToken(env.getProperty("apps[0].config.privateToken"));
+        .personalAccessToken(env.getProperty("apps[0].config.personalAccessToken"));
     if (StringUtils.hasText(env.getProperty("proxy.host"))) {
       builder = builder.proxyHost(env.getProperty("proxy.host"))
           .proxyPort(Integer.parseInt(env.getProperty("proxy.port")));

@@ -19,7 +19,7 @@ apps:
   - factory: org.vaulttec.idm.sync.app.gitlab.GitLabFactory
     config:
       serverUrl: 
-      privateToken: 
+      personalAccessToken: 
       group:
         search: "%_GIT_%"
         regExp: .*_GIT_(?<groupPath>\w*)_(?<permission>\w*)

@@ -44,10 +44,10 @@ public class GitLabClient extends AbstractRestClient {
   protected static final ParameterizedTypeReference<List<GLProject>> RESPONSE_TYPE_PROJECTS = new ParameterizedTypeReference<List<GLProject>>() {
   };
 
-  GitLabClient(String serverUrl, int perPage, String privateToken, String proxyHost, int proxyPort) {
+  GitLabClient(String serverUrl, int perPage, String personalAccessToken, String proxyHost, int proxyPort) {
     super(serverUrl, perPage, proxyHost, proxyPort);
     LOG.debug("Init: serverUrl={}, perPage={}, proxyHost={}, proxyPort={}", serverUrl, perPage, proxyHost, proxyPort);
-    prepareAuthenticationEntity("PRIVATE-TOKEN", privateToken);
+    prepareAuthenticationEntity("PRIVATE-TOKEN", personalAccessToken);
   }
 
   public List<GLUser> getUsers(String search) {

@@ -22,7 +22,7 @@ apps:
   - factory: org.vaulttec.idm.sync.app.gitlab.GitLabFactory
     config:
       serverUrl: http://torstens-macbook-pro.local:8083
-      privateToken: d9FPuic1fFd-gzNvpmw4
+      personalAccessToken: d9FPuic1fFd-gzNvpmw4
       group:
         search: "%_GIT_%"
         regExp: .*_GIT_(?<groupPath>\w*)_(?<permission>\w*)

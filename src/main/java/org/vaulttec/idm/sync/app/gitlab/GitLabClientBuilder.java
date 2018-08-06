@@ -21,7 +21,7 @@ public final class GitLabClientBuilder {
 
   private final String serverUrl;
   private int perPage;
-  private String privateToken;
+  private String personalAccessToken;
   private String proxyHost;
   private int proxyPort;
 
@@ -39,8 +39,8 @@ public final class GitLabClientBuilder {
    * "https://docs.gitlab.com/ce/user/profile/personal_access_tokens.html">personal
    * access token</a> of a user allowed to manage all groups and users.
    */
-  public GitLabClientBuilder privateToken(String privateToken) {
-    this.privateToken = privateToken;
+  public GitLabClientBuilder personalAccessToken(String personalAccessToken) {
+    this.personalAccessToken = personalAccessToken;
     return this;
   }
 
@@ -61,12 +61,12 @@ public final class GitLabClientBuilder {
     if (perPage == 0) {
       perPage = 100;
     }
-    if (privateToken == null) {
-      throw new IllegalStateException("privateToken required");
+    if (personalAccessToken == null) {
+      throw new IllegalStateException("personalAccessToken required");
     }
     if (proxyHost != null && proxyPort == 0) {
       throw new IllegalStateException("proxyPort required");
     }
-    return new GitLabClient(serverUrl, perPage, privateToken, proxyHost, proxyPort);
+    return new GitLabClient(serverUrl, perPage, personalAccessToken, proxyHost, proxyPort);
   }
 }

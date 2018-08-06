@@ -29,7 +29,7 @@ public class GitLabFactory implements ApplicationFactory {
   @Override
   public Application createApplication(Map<String, String> config, Environment env) {
     GitLabClientBuilder glcBuilder = new GitLabClientBuilder(config.get("serverUrl"))
-        .perPage(Integer.parseInt(config.get("perPage"))).privateToken(config.get("privateToken"));
+        .perPage(Integer.parseInt(config.get("perPage"))).personalAccessToken(config.get("personalAccessToken"));
     if (StringUtils.hasText(env.getProperty("proxy.host"))) {
       glcBuilder = glcBuilder.proxyHost(env.getProperty("proxy.host"))
           .proxyPort(Integer.parseInt(env.getProperty("proxy.port")));
