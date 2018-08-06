@@ -25,8 +25,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +33,7 @@ import org.springframework.web.client.RestClientException;
 import org.vaulttec.idm.sync.app.AbstractRestClient;
 import org.vaulttec.idm.sync.app.LinkHeader;
 
-public class GitLabClient extends AbstractRestClient implements ApplicationEventPublisherAware {
+public class GitLabClient extends AbstractRestClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(GitLabClient.class);
 
@@ -372,11 +370,5 @@ public class GitLabClient extends AbstractRestClient implements ApplicationEvent
       LOG.error("Removing user from project failed", e);
     }
     return false;
-  }
-
-  @Override
-  public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-    // TODO Auto-generated method stub
-
   }
 }
