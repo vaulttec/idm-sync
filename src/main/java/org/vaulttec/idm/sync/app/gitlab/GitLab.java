@@ -69,7 +69,7 @@ public class GitLab extends AbstractApplication {
   public boolean sync(List<IdpGroup> idpGroups) {
     Map<String, GLGroup> targetGroups = new HashMap<>();
     Map<String, GLUser> targetUsers = new HashMap<>();
-    retrieveGroupsAndUsers(idpGroups, targetGroups, targetUsers);
+    retrieveTargetGroupsAndUsers(idpGroups, targetGroups, targetUsers);
     Map<String, GLUser> syncedUsers = syncUsers(targetUsers);
     if (syncedUsers != null) {
       if (syncGroups(targetGroups, syncedUsers)) {
@@ -219,7 +219,7 @@ public class GitLab extends AbstractApplication {
     }
   }
 
-  protected void retrieveGroupsAndUsers(List<IdpGroup> idpGroups, Map<String, GLGroup> glGroups,
+  protected void retrieveTargetGroupsAndUsers(List<IdpGroup> idpGroups, Map<String, GLGroup> glGroups,
       Map<String, GLUser> glUsers) {
     for (IdpGroup idpGroup : idpGroups) {
       LOG.debug("Converting IDP group '{}'", idpGroup.getPath());
