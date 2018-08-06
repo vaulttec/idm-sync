@@ -16,4 +16,4 @@ proxy:
 sync:
   rate: 600000  # 10 min
   enabledApps:
-  - "*"
+    - "*"

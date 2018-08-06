@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.vaulttec.idm.sync.app.Application;
@@ -35,12 +34,12 @@ public class SyncTask extends AbstractSyncEventPublisher {
 
   private final IdentityProvider idp;
   private final List<Application> apps;
-  private final List<String> enabledApps;
+  private final SyncConfig syncConfig;
 
-  SyncTask(IdentityProvider idp, List<Application> apps, @Value("${sync.enabledApps}") List<String> enabledApps) {
+  SyncTask(IdentityProvider idp, List<Application> apps, SyncConfig syncConfig) {
     this.idp = idp;
     this.apps = apps;
-    this.enabledApps = enabledApps;
+    this.syncConfig = syncConfig;
   }
 
   @Scheduled(fixedRateString = "${sync.rate}")
@@ -48,7 +47,7 @@ public class SyncTask extends AbstractSyncEventPublisher {
     LOG.info("Start syncing...");
     if (idp.authenticate()) {
       for (Application app : apps) {
-        if (enabledApps.contains("*") || enabledApps.contains(app.getId())) {
+        if (syncConfig.getEnabledApps().contains("*") || syncConfig.getEnabledApps().contains(app.getId())) {
           LOG.info("Syncing '{}'", app.getName());
           publishSyncEvent(SyncEvents.createEvent(SyncEvents.SYNC_STARTED, app.getId()));
           List<IdpGroup> groups = idp.getGroupsWithMembers(app.getGroupSearch());
