@@ -18,7 +18,9 @@
 package org.vaulttec.idm.sync.idp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -28,6 +30,7 @@ public class IdpGroup {
   private String id;
   private String name;
   private String path;
+  private Map<String, List<String>> attributes = new HashMap<>();
   private List<IdpUser> members = new ArrayList<>();
 
   public String getId() {
@@ -52,6 +55,19 @@ public class IdpGroup {
 
   public void setPath(String path) {
     this.path = path;
+  }
+
+  public Map<String, List<String>> getAttributes() {
+    return attributes;
+  }
+
+  public String getAttribute(String name) {
+    List<String> values = attributes.get(name);
+    return values != null && !values.isEmpty() ? values.get(0) : null;
+  }
+
+  public void setAttributes(Map<String, List<String>> attributes) {
+    this.attributes = attributes;
   }
 
   public List<IdpUser> getMembers() {

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -60,6 +61,7 @@ public abstract class AbstractRestClient extends AbstractClient {
 
   protected void prepareAuthenticationEntity(String headerName, String headerValue) {
     HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
     headers.set(headerName, headerValue);
     authenticationEntity = new HttpEntity<String>(headers);
   }

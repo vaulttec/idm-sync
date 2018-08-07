@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.vaulttec.idm.sync.app.Application;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
 import org.vaulttec.idm.sync.idp.IdpGroup;
+import org.vaulttec.idm.sync.idp.IdpUser;
 
 @Component
 public class SyncTask extends AbstractSyncEventPublisher {
@@ -50,7 +51,7 @@ public class SyncTask extends AbstractSyncEventPublisher {
         if (syncConfig.getEnabledApps().contains("*") || syncConfig.getEnabledApps().contains(app.getId())) {
           LOG.info("Syncing '{}'", app.getName());
           publishSyncEvent(SyncEvents.createEvent(SyncEvents.SYNC_STARTED, app.getId()));
-          List<IdpGroup> groups = idp.getGroupsWithMembers(app.getGroupSearch());
+          List<IdpGroup> groups = getGroupsWithMembers(app.getGroupSearch());
           if (groups != null) {
             app.sync(groups);
           }
@@ -60,4 +61,23 @@ public class SyncTask extends AbstractSyncEventPublisher {
     }
     LOG.info("Finished syncing...");
   }
+
+  protected List<IdpGroup> getGroupsWithMembers(String search) {
+    LOG.debug("Retrieving groups with members: search={}", search);
+    List<IdpGroup> groups = idp.getGroups(search);
+    if (groups != null) {
+      for (IdpGroup group : groups) {
+        List<IdpUser> members = idp.getGroupMembers(group);
+        if (members != null) {
+          for (IdpUser member : members) {
+            member.addGroup(group);
+            group.addMember(member);
+          }
+        }
+      }
+      return groups;
+    }
+    return null;
+  }
+
 }

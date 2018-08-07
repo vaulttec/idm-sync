@@ -20,8 +20,13 @@ package org.vaulttec.idm.sync.idp;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -48,8 +53,10 @@ public class KeycloakClientIntegrationTest {
   @Autowired
   private Environment env;
 
-  @Test
-  public void testGetGruoupsWithMembers() {
+  private KeycloakClient client;
+
+  @Before
+  public void setup() {
     KeycloakClientBuilder builder = new KeycloakClientBuilder(env.getProperty("idp.config.serverUrl"))
         .perPage(Integer.valueOf(env.getProperty("idp.config.perPage"))).realm(env.getProperty("idp.config.realm"))
         .clientId(env.getProperty("idp.config.client.id")).clientSecret(env.getProperty("idp.config.client.secret"));
@@ -57,15 +64,61 @@ public class KeycloakClientIntegrationTest {
       builder = builder.proxyHost(env.getProperty("proxy.host"))
           .proxyPort(Integer.parseInt(env.getProperty("proxy.port")));
     }
-    KeycloakClient client = builder.build();
-
+    client = builder.build();
     assertTrue(client.authenticate());
+  }
 
-    List<IdpGroup> groups = client.getGroupsWithMembers(env.getProperty("idp.config.group.search"));
+  @Test
+  @Ignore
+  public void testGetUsers() {
+    List<IdpUser> users = client.getUsers(null);
+    assertThat(users).isNotNull().isNotEmpty();
+    for (IdpUser user : users) {
+      LOG.info("   {} ({}) - {}", user.getUsername(), user.getName(), user.getEmail());
+    }
+  }
+
+  @Test
+  @Ignore
+  public void testUpdateUserAttributes() {
+    List<IdpUser> users = client.getUsers("b0123");
+    assertThat(users).isNotNull().isNotEmpty();
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put("testAttribute", Arrays.asList("testValue"));
+    assertTrue(client.updateUserAttributes(users.get(0), attributes));
+    attributes.put("testAttribute", null);
+    assertTrue(client.updateUserAttributes(users.get(0), attributes));
+  }
+
+  @Test
+  public void testGetGroups() {
+    List<IdpGroup> groups = client.getGroups(env.getProperty("idp.config.group.search"));
     assertThat(groups).isNotNull().isNotEmpty();
     for (IdpGroup group : groups) {
-      LOG.info("{} ({}):", group.getPath(), group.getMembers().size());
-      for (IdpUser user : group.getMembers()) {
+      LOG.info("{}", group.getPath());
+    }
+  }
+
+  @Test
+  @Ignore
+  public void testUpdateGroupAttributes() {
+    List<IdpGroup> groups = client.getGroups(env.getProperty("idp.config.group.search"));
+    assertThat(groups).isNotNull().isNotEmpty();
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put("testAttribute", Arrays.asList("testValue"));
+    assertTrue(client.updateGroupAttributes(groups.get(0), attributes));
+    attributes.put("testAttribute", null);
+    assertTrue(client.updateGroupAttributes(groups.get(0), attributes));
+  }
+
+  @Test
+  public void testGetGroupMembers() {
+    List<IdpGroup> groups = client.getGroups(env.getProperty("idp.config.group.search"));
+    assertThat(groups).isNotNull().isNotEmpty();
+    for (IdpGroup group : groups) {
+      LOG.info("{}", group.getPath());
+      List<IdpUser> users = client.getGroupMembers(group);
+      for (IdpUser user : users) {
         LOG.info("   {} ({}) - {}:", user.getUsername(), user.getName(), user.getEmail());
       }
     }

@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.idp.keycloak;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -37,6 +38,8 @@ import org.vaulttec.idm.sync.app.AbstractRestClient;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class KeycloakClient extends AbstractRestClient {
@@ -50,6 +53,7 @@ public class KeycloakClient extends AbstractRestClient {
 
   private final String realm;
   private final HttpEntity<String> loginEntity;
+  private final ObjectMapper mapper;
 
   KeycloakClient(String serverUrl, int perPage, String realm, String clientId, String clientSecret, String proxyHost,
       int proxyPort) {
@@ -58,6 +62,7 @@ public class KeycloakClient extends AbstractRestClient {
         realm, clientId, proxyHost, proxyPort);
     this.realm = realm;
     this.loginEntity = createLoginEntity(clientId, clientSecret);
+    this.mapper = new ObjectMapper();
   }
 
   /**
@@ -87,22 +92,59 @@ public class KeycloakClient extends AbstractRestClient {
     return false;
   }
 
-  public List<IdpGroup> getGroupsWithMembers(String search) {
-    LOG.debug("Retrieving groups with members: search={}", search);
-    List<IdpGroup> groups = getGroups(search);
-    if (groups != null) {
-      for (IdpGroup group : groups) {
-        List<IdpUser> members = getGroupMembers(group);
-        if (members != null) {
-          for (IdpUser member : members) {
-            member.addGroup(group);
-            group.addMember(member);
-          }
-        }
+  public List<IdpUser> getUsers(String search) {
+    if (authenticationEntity == null) {
+      throw new IllegalStateException("Authentication required");
+    }
+    LOG.debug("Retrieving users: search={}", search);
+    int first = 0;
+    String usersUrl = serverUrl + "/admin/realms/{realm}/users?first={first}&max={perPage}";
+    Map<String, String> uriVariables = createUriVariables("realm", realm, "first", Integer.toString(first), "perPage",
+        perPageAsString());
+    if (StringUtils.hasText(search)) {
+      usersUrl += "&search={search}";
+      uriVariables.put("search", search);
+    }
+    try {
+      ResponseEntity<List<IdpUser>> response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity,
+          RESPONSE_TYPE_USERS, uriVariables);
+      if (response.getBody().size() < perPage) {
+        return response.getBody();
+      } else {
+        List<IdpUser> groups = new ArrayList<>(response.getBody());
+        do {
+          first += perPage;
+          uriVariables.put("first", Integer.toString(first));
+          response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS,
+              uriVariables);
+          groups.addAll(response.getBody());
+        } while (response.getBody().size() == perPage);
+        return groups;
       }
-      return groups;
+    } catch (RestClientException e) {
+      LOG.error("Retrieving users failed", e);
     }
     return null;
+  }
+
+  public boolean updateUserAttributes(IdpUser user, Map<String, List<String>> attributes) {
+    if (authenticationEntity == null) {
+      throw new IllegalStateException("Authentication required");
+    }
+    LOG.debug("Updating user ({}) attributes: attributes={}", user.getUsername(), attributes);
+    String userUrl = serverUrl + "/admin/realms/{realm}/users/{userId}";
+    Map<String, String> uriVariables = createUriVariables("realm", realm, "userId", user.getId());
+    updateMultiValueMap(user.getAttributes(), attributes);
+    try {
+      JsonNode userAttributesNode = mapper.valueToTree(user.getAttributes());
+      HttpEntity<String> entity = new HttpEntity<String>(
+          "{\"attributes\": " + mapper.writeValueAsString(userAttributesNode) + "}", authenticationEntity.getHeaders());
+      restTemplate.exchange(userUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
+      return true;
+    } catch (RestClientException | IOException e) {
+      LOG.error("Updating user attribues failed", e);
+    }
+    return false;
   }
 
   public List<IdpGroup> getGroups(String search) {
@@ -138,6 +180,26 @@ public class KeycloakClient extends AbstractRestClient {
       LOG.error("Retrieving groups failed", e);
     }
     return null;
+  }
+
+  public boolean updateGroupAttributes(IdpGroup group, Map<String, List<String>> attributes) {
+    if (authenticationEntity == null) {
+      throw new IllegalStateException("Authentication required");
+    }
+    LOG.debug("Updating group ({}) attributes: attributes={}", group.getPath(), attributes);
+    String groupUrl = serverUrl + "/admin/realms/{realm}/groups/{groupId}";
+    Map<String, String> uriVariables = createUriVariables("realm", realm, "groupId", group.getId());
+    updateMultiValueMap(group.getAttributes(), attributes);
+    try {
+      JsonNode attributesNode = mapper.valueToTree(group.getAttributes());
+      HttpEntity<String> entity = new HttpEntity<String>(
+          "{\"attributes\": " + mapper.writeValueAsString(attributesNode) + "}", authenticationEntity.getHeaders());
+      restTemplate.exchange(groupUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
+      return true;
+    } catch (RestClientException | IOException e) {
+      LOG.error("Updating group attribues failed", e);
+    }
+    return false;
   }
 
   public List<IdpUser> getGroupMembers(IdpGroup group) {
@@ -181,5 +243,26 @@ public class KeycloakClient extends AbstractRestClient {
     String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(Charset.forName("US-ASCII")));
     headers.set("Authorization", "Basic " + encodedAuth);
     return new HttpEntity<String>("grant_type=client_credentials", headers);
+  }
+
+  private void updateMultiValueMap(Map<String, List<String>> existing,
+      Map<String, List<String>> additional) {
+    for (String key : additional.keySet()) {
+      List<String> additionalValues = additional.get(key);
+      if (additionalValues == null) {
+        existing.remove(key);
+      } else {
+        List<String> existingValues = existing.get(key);
+        if (existingValues == null) {
+          existing.put(key, new ArrayList<>(additionalValues));
+        } else {
+          for (String additionalValue : additionalValues) {
+            if (!existingValues.contains(additionalValue)) {
+              existingValues.add(additionalValue);
+            }
+          }
+        }
+      }
+    }
   }
 }

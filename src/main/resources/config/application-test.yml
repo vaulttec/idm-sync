@@ -28,6 +28,7 @@ apps:
         regExp: .*_GIT_(?<groupPath>\w*)_(?<permission>\w*)
       sync:
         excludedUsers: root, ghost
+        excludedUsers: root, ghost, gladmin
         removeProjectMembers: true
       provider:
         name: ldapmain

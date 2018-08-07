@@ -18,6 +18,7 @@
 package org.vaulttec.idm.sync.idp;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IdentityProvider {
 
@@ -27,5 +28,13 @@ public interface IdentityProvider {
 
   boolean authenticate();
 
-  List<IdpGroup> getGroupsWithMembers(String search);
+  List<IdpUser> getUsers(String search);
+
+  boolean updateUserAttributes(IdpUser user, Map<String, List<String>> attributes);
+
+  List<IdpGroup> getGroups(String search);
+
+  boolean updateGroupAttributes(IdpGroup group, Map<String, List<String>> attributes);
+
+  List<IdpUser> getGroupMembers(IdpGroup group);
 }

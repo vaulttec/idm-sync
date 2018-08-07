@@ -18,9 +18,11 @@
 package org.vaulttec.idm.sync.idp.keycloak;
 
 import java.util.List;
+import java.util.Map;
 
 import org.vaulttec.idm.sync.idp.IdentityProvider;
 import org.vaulttec.idm.sync.idp.IdpGroup;
+import org.vaulttec.idm.sync.idp.IdpUser;
 
 public class Keycloak implements IdentityProvider {
 
@@ -46,7 +48,27 @@ public class Keycloak implements IdentityProvider {
   }
 
   @Override
-  public List<IdpGroup> getGroupsWithMembers(String search) {
-    return client.getGroupsWithMembers(search);
+  public List<IdpUser> getUsers(String search) {
+    return client.getUsers(search);
+  }
+
+  @Override
+  public boolean updateUserAttributes(IdpUser user, Map<String, List<String>> attributes) {
+    return client.updateUserAttributes(user, attributes);
+  }
+
+  @Override
+  public List<IdpGroup> getGroups(String search) {
+    return client.getGroups(search);
+  }
+
+  @Override
+  public boolean updateGroupAttributes(IdpGroup group, Map<String, List<String>> attributes) {
+    return client.updateGroupAttributes(group, attributes);
+  }
+
+  @Override
+  public List<IdpUser> getGroupMembers(IdpGroup group) {
+    return client.getGroupMembers(group);
   }
 }

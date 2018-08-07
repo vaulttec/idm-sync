@@ -33,6 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
 import org.vaulttec.idm.sync.idp.IdpGroup;
+import org.vaulttec.idm.sync.idp.IdpUser;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClient;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClientBuilder;
 
@@ -57,8 +58,16 @@ public class GitLabIntegrationTest {
     KeycloakClient kcClient = kcBuilder.build();
 
     assertTrue(kcClient.authenticate());
-    List<IdpGroup> groups = kcClient.getGroupsWithMembers(env.getProperty("apps[0].config.group.search"));
-    assertThat(groups).isNotNull().isNotEmpty();
+    List<IdpGroup> groups = kcClient.getGroups(env.getProperty("apps[0].config.group.search"));
+    assertThat(groups).isNotNull();
+    for (IdpGroup group : groups) {
+      List<IdpUser> members = kcClient.getGroupMembers(group);
+      assertThat(members).isNotNull();
+      for (IdpUser member : members) {
+        member.addGroup(group);
+        group.addMember(member);
+      }
+    }
 
     GitLabClientBuilder glcBuilder = new GitLabClientBuilder(env.getProperty("apps[0].config.serverUrl"))
         .perPage(Integer.parseInt(env.getProperty("apps[0].config.perPage")))
