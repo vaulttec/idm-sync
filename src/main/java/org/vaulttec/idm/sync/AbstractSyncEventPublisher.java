@@ -19,7 +19,6 @@ package org.vaulttec.idm.sync;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 
@@ -32,8 +31,11 @@ public abstract class AbstractSyncEventPublisher {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  @Autowired
-  private AuditEventRepository eventRepository;
+  private final AuditEventRepository eventRepository;
+
+  protected AbstractSyncEventPublisher(AuditEventRepository eventRepository) {
+    this.eventRepository = eventRepository;
+  }
 
   protected void publishSyncEvent(AuditEvent event) {
     try {

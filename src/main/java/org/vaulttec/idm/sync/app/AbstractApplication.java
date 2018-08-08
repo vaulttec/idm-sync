@@ -20,12 +20,16 @@ package org.vaulttec.idm.sync.app;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class AbstractApplication implements Application {
+import org.springframework.boot.actuate.audit.AuditEventRepository;
+import org.vaulttec.idm.sync.AbstractSyncEventPublisher;
+
+public abstract class AbstractApplication extends AbstractSyncEventPublisher implements Application {
 
   private final String groupSearch;
   private final Pattern groupPattern;
 
-  public AbstractApplication(String groupSearch, String groupRegExp) {
+  public AbstractApplication(AuditEventRepository eventRepository, String groupSearch, String groupRegExp) {
+    super(eventRepository);
     this.groupSearch = groupSearch;
     this.groupPattern = Pattern.compile(groupRegExp);
   }

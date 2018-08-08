@@ -7,6 +7,7 @@
 	<include
 		resource="org/springframework/boot/logging/logback/console-appender.xml" />
 	<logger name="org.springframework" level="WARN" />
+	<logger name="org.vaulttec" level="ERROR" />
 	<root level="INFO">
 		<appender-ref ref="CONSOLE" />
 	</root>

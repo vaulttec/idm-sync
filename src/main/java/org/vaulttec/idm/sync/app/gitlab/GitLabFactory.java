@@ -19,6 +19,7 @@ package org.vaulttec.idm.sync.app.gitlab;
 
 import java.util.Map;
 
+import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 import org.vaulttec.idm.sync.app.Application;
@@ -27,7 +28,8 @@ import org.vaulttec.idm.sync.app.ApplicationFactory;
 public class GitLabFactory implements ApplicationFactory {
 
   @Override
-  public Application createApplication(Map<String, String> config, Environment env) {
+  public Application createApplication(Map<String, String> config, Environment env,
+      AuditEventRepository eventRepository) {
     GitLabClientBuilder glcBuilder = new GitLabClientBuilder(config.get("serverUrl"))
         .perPage(Integer.parseInt(config.get("perPage"))).personalAccessToken(config.get("personalAccessToken"));
     if (StringUtils.hasText(env.getProperty("proxy.host"))) {
@@ -36,7 +38,7 @@ public class GitLabFactory implements ApplicationFactory {
     }
     GitLabClient glClient = glcBuilder.build();
 
-    GitLabBuilder glBuilder = new GitLabBuilder(glClient).groupRegExp(config.get("group.regExp"))
+    GitLabBuilder glBuilder = new GitLabBuilder(glClient, eventRepository).groupRegExp(config.get("group.regExp"))
         .excludedUsers(config.get("sync.excludedUsers"))
         .removeProjectMembers(Boolean.parseBoolean(config.get("sync.removeProjectMembers")))
         .providerName(config.get("provider.name")).providerUidAttribute(config.get("provider.uidAttribute"));

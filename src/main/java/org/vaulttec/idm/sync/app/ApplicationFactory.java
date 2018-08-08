@@ -19,9 +19,10 @@ package org.vaulttec.idm.sync.app;
 
 import java.util.Map;
 
+import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.core.env.Environment;
 
 public interface ApplicationFactory {
 
-  Application createApplication(Map<String, String> config, Environment env);
+  Application createApplication(Map<String, String> config, Environment env, AuditEventRepository eventRepository);
 }

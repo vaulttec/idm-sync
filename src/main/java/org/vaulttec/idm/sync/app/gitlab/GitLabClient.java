@@ -173,7 +173,6 @@ public class GitLabClient extends AbstractRestClient {
         "accessLevel", permission.getAccessLevel());
     try {
       restTemplate.exchange(groupMembersUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
-      publishSyncEvent(GitLabEvents.userAddedToGroup(user.getUsername(), group.getPath()));
       return true;
     } catch (RestClientException e) {
       LOG.error("Adding user to group failed", e);
@@ -193,7 +192,6 @@ public class GitLabClient extends AbstractRestClient {
     Map<String, String> uriVariables = createUriVariables("groupId", group.getId(), "userId", user.getId());
     try {
       restTemplate.exchange(groupMembersUrl, HttpMethod.DELETE, authenticationEntity, Void.class, uriVariables);
-      publishSyncEvent(GitLabEvents.userRemovedFromGroup(user.getUsername(), group.getPath()));
       return true;
     } catch (RestClientException e) {
       LOG.error("Removing user from group failed", e);
@@ -218,7 +216,6 @@ public class GitLabClient extends AbstractRestClient {
     }
     try {
       GLGroup group = restTemplate.postForObject(groupsUrl, authenticationEntity, GLGroup.class, uriVariables);
-      publishSyncEvent(GitLabEvents.groupCreated(group.getPath()));
       return group;
     } catch (RestClientException e) {
       LOG.error("Creating group failed", e);
@@ -244,7 +241,6 @@ public class GitLabClient extends AbstractRestClient {
     }
     try {
       GLUser user = restTemplate.postForObject(usersUrl, authenticationEntity, GLUser.class, uriVariables);
-      publishSyncEvent(GitLabEvents.userCreated(user.getUsername()));
       return user;
     } catch (RestClientException e) {
       LOG.error("Creating user failed", e);
@@ -261,7 +257,6 @@ public class GitLabClient extends AbstractRestClient {
     Map<String, String> uriVariables = createUriVariables("id", user.getId());
     try {
       restTemplate.exchange(userUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
-      publishSyncEvent(GitLabEvents.userBlocked(user.getUsername()));
       return true;
     } catch (RestClientException e) {
       LOG.error("Blocking user failed", e);
@@ -278,7 +273,6 @@ public class GitLabClient extends AbstractRestClient {
     Map<String, String> uriVariables = createUriVariables("id", user.getId());
     try {
       restTemplate.exchange(userUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
-      publishSyncEvent(GitLabEvents.userUnblocked(user.getUsername()));
       user.setState(GLState.ACTIVE);
       return true;
     } catch (RestClientException e) {
@@ -364,7 +358,6 @@ public class GitLabClient extends AbstractRestClient {
     Map<String, String> uriVariables = createUriVariables("projectId", project.getId(), "userId", user.getId());
     try {
       restTemplate.exchange(projectUsersUrl, HttpMethod.DELETE, authenticationEntity, Void.class, uriVariables);
-      publishSyncEvent(GitLabEvents.userRemovedFromProject(user.getUsername(), project.getPath()));
       return true;
     } catch (RestClientException e) {
       LOG.error("Removing user from project failed", e);

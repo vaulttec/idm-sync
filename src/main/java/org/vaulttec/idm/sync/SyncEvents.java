@@ -24,19 +24,20 @@ import org.springframework.boot.actuate.audit.AuditEvent;
 
 public abstract class SyncEvents {
 
-  public static final String SYNC_STARTED = "SYNC_STARTED";
-  public static final String SYNC_FINISHED = "SYNC_FINISHED";
+  public static final String PRINCIPAL = "idm-sync";
+
   public static final String USER_CREATED = "USER_CREATED";
   public static final String USER_BLOCKED = "USER_BLOCKED";
   public static final String USER_UNBLOCKED = "USER_UNBLOCKED";
   public static final String USER_ADDED = "USER_ADDED";
   public static final String USER_REMOVED = "USER_REMOVED";
-  public static final String GROUP_CREATED = "GROUP_CREATED";
+  /** Generic term for the applicationä-specific terms GitLab Group, Mattermost Team, JIRA Project, ... */
+  public static final String COMPOSITE_CREATED = "COMPOSITE_CREATED";
 
   public static AuditEvent createEvent(String type, String application, String... data) {
     Map<String, Object> dataMap = convertToMap(data);
     dataMap.put("application", application);
-    return new AuditEvent("idm-sync", type, dataMap);
+    return new AuditEvent(PRINCIPAL, type, dataMap);
   }
 
   private static Map<String, Object> convertToMap(String[] data) {

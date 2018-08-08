@@ -17,8 +17,10 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +31,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 
@@ -37,12 +41,14 @@ public class GitLabTest {
 
   private static final String PROVIDER_NAME = "ldapmain";
   private GitLabClient client;
+  private AuditEventRepository eventRepository;
   private GitLab app;
 
   @Before
   public void setUp() throws Exception {
     client = mock(GitLabClient.class);
-    app = new GitLabBuilder(client).groupRegExp("APP_GIT_(?<groupPath>\\w*)_(?<permission>\\w*)")
+    eventRepository = mock(AuditEventRepository.class);
+    app = new GitLabBuilder(client, eventRepository).groupRegExp("APP_GIT_(?<groupPath>\\w*)_(?<permission>\\w*)")
         .removeProjectMembers(true).providerName(PROVIDER_NAME).providerUidAttribute("LDAP_ENTRY_DN").build();
   }
 
@@ -74,6 +80,8 @@ public class GitLabTest {
     verify(client, never()).removeMemberFromGroup(null, null);
     verify(client, never()).blockUser(null);
     verify(client, never()).unblockUser(null);
+
+    verify(eventRepository, times(1)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -92,6 +100,7 @@ public class GitLabTest {
     when(client.createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, null)).thenReturn(glUser);
     when(client.getGroupsWithMembers(null)).thenReturn(new ArrayList<>());
     when(client.createGroup("grp1", "grp1", null)).thenReturn(glGroup);
+    when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -116,6 +125,8 @@ public class GitLabTest {
     verify(client, never()).removeMemberFromGroup(glGroup, null);
     verify(client, never()).blockUser(null);
     verify(client, never()).unblockUser(null);
+
+    verify(eventRepository, times(3)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -143,6 +154,7 @@ public class GitLabTest {
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
     when(client.createUser("user2", "User 2", "user2@acme.com", PROVIDER_NAME, null)).thenReturn(glUser2);
+    when(client.addMemberToGroup(glGroup, glUser2, GLPermission.DEVELOPER)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -179,6 +191,8 @@ public class GitLabTest {
     verify(client, never()).removeMemberFromGroup(glGroup, null);
     verify(client, never()).blockUser(null);
     verify(client, never()).unblockUser(null);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -199,6 +213,7 @@ public class GitLabTest {
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
     when(client.createUser("user1", "User 1", "user1" + GitLab.DUMMY_EMAIL_DOMAIN, PROVIDER_NAME, null))
         .thenReturn(glUser);
+    when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -223,6 +238,8 @@ public class GitLabTest {
     verify(client, never()).removeMemberFromGroup(glGroup, null);
     verify(client, never()).blockUser(null);
     verify(client, never()).unblockUser(null);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -244,6 +261,8 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.removeMemberFromGroup(glGroup, glUser)).thenReturn(true);
+    when(client.blockUser(glUser)).thenReturn(true);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -261,6 +280,8 @@ public class GitLabTest {
     verify(client).removeMemberFromGroup(glGroup, glUser);
     verify(client).blockUser(glUser);
     verify(client, never()).unblockUser(glUser);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -282,6 +303,8 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.removeMemberFromGroup(glGroup, glUser)).thenReturn(true);
+    when(client.blockUser(glUser)).thenReturn(true);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
 
@@ -295,6 +318,8 @@ public class GitLabTest {
     verify(client).removeMemberFromGroup(glGroup, glUser);
     verify(client).blockUser(glUser);
     verify(client, never()).unblockUser(glUser);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -322,6 +347,8 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.removeMemberFromGroup(glGroup, glUser2)).thenReturn(true);
+    when(client.unblockUser(glUser)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -346,6 +373,8 @@ public class GitLabTest {
     verify(client).removeMemberFromGroup(glGroup, glUser2);
     verify(client, never()).blockUser(glUser);
     verify(client).unblockUser(glUser);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -366,6 +395,8 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
+    when(client.unblockUser(glUser)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -390,6 +421,8 @@ public class GitLabTest {
     verify(client, never()).removeMemberFromGroup(glGroup, glUser);
     verify(client, never()).blockUser(glUser);
     verify(client).unblockUser(glUser);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -411,6 +444,8 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
+    when(client.removeMemberFromGroup(glGroup, glUser)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -445,6 +480,8 @@ public class GitLabTest {
     verify(client).removeMemberFromGroup(glGroup, glUser);
     verify(client, never()).blockUser(glUser);
     verify(client, never()).unblockUser(glUser);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -480,6 +517,9 @@ public class GitLabTest {
     List<GLUser> glProjectUsers = new ArrayList<>();
     glProjectUsers.add(glUser2);
 
+    when(client.blockUser(glUser2)).thenReturn(true);
+    when(client.removeMemberFromProject(glProject, glUser2)).thenReturn(true);
+
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
     when(client.getProjectsFromGroup(glGroup, null)).thenReturn(glProjects);
@@ -512,10 +552,12 @@ public class GitLabTest {
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.DEVELOPER);
     verify(client, never()).removeMemberFromGroup(glGroup, glUser);
-    verify(client, never()).blockUser(glUser);
+    verify(client).blockUser(glUser2);
     verify(client, never()).unblockUser(glUser);
     verify(client).getProjectsFromGroup(glGroup, null);
     verify(client).getProjectUsers(glProject);
     verify(client).removeMemberFromProject(glProject, glUser2);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
   }
 }

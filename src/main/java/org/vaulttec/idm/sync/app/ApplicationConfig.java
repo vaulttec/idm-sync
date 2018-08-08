@@ -22,12 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
-@Component
+@Configuration
 @ConfigurationProperties
 public class ApplicationConfig {
   private final Environment env;
@@ -41,11 +43,14 @@ public class ApplicationConfig {
     return apps;
   }
 
+  @Autowired
+  private AuditEventRepository eventRepository;
+
   @Bean
   public List<Application> applications() throws InstantiationException, IllegalAccessException {
     List<Application> applications = new ArrayList<>(apps.size());
     for (App app : apps) {
-      app.getFactory().newInstance().createApplication(app.getConfig(), env);
+      applications.add(app.getFactory().newInstance().createApplication(app.getConfig(), env, eventRepository));
     }
     return applications;
   }

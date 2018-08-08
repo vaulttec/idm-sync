@@ -78,7 +78,8 @@ public class GitLabIntegrationTest {
     }
     GitLabClient glClient = glcBuilder.build();
 
-    GitLabBuilder glBuilder = new GitLabBuilder(glClient).groupRegExp(env.getProperty("apps[0].config.group.regExp"))
+    GitLabBuilder glBuilder = new GitLabBuilder(glClient, null)
+        .groupRegExp(env.getProperty("apps[0].config.group.regExp"))
         .excludedUsers(env.getProperty("apps[0].config.sync.excludedUsers"))
         .removeProjectMembers(Boolean.parseBoolean(env.getProperty("apps[0].config.sync.removeProjectMembers")))
         .providerName(env.getProperty("apps[0].config.provider.name"))

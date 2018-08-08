@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.AbstractApplication;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
@@ -44,9 +45,9 @@ public class GitLab extends AbstractApplication {
   private final String providerName;
   private final String providerUidAttribute;
 
-  GitLab(GitLabClient client, String groupSearch, String groupRegExp, String excludedUsers,
-      boolean removeProjectMembers, String providerName, String providerUidAttribute) {
-    super(groupSearch, groupRegExp);
+  GitLab(GitLabClient client, AuditEventRepository eventRepository, String groupSearch, String groupRegExp,
+      String excludedUsers, boolean removeProjectMembers, String providerName, String providerUidAttribute) {
+    super(eventRepository, groupSearch, groupRegExp);
     LOG.debug("Init: groupSearch={}, groupRegExp={}", groupSearch, groupRegExp);
     this.client = client;
     this.excludedUsers = StringUtils.commaDelimitedListToTrimmedSet(excludedUsers);
@@ -88,7 +89,9 @@ public class GitLab extends AbstractApplication {
       for (GLUser sourceUser : sourceUsers) {
         if (targetUsers.containsKey(sourceUser.getUsername())) {
           if (sourceUser.getState() == GLState.BLOCKED) {
-            client.unblockUser(sourceUser);
+            if (client.unblockUser(sourceUser)) {
+              publishSyncEvent(GitLabEvents.userUnblocked(sourceUser));
+            }
             sourceUser.setState(GLState.ACTIVE);
           }
           syncedUsers.put(sourceUser.getUsername(), sourceUser);
@@ -104,6 +107,7 @@ public class GitLab extends AbstractApplication {
           GLUser newUser = client.createUser(targetUser.getUsername(), targetUser.getName(), targetUser.getEmail(),
               targetUser.getProvider(), targetUser.getExternUid());
           if (newUser != null) {
+            publishSyncEvent(GitLabEvents.userCreated(newUser, targetUser.getIdpUser()));
             syncedUsers.put(newUser.getUsername(), newUser);
           } else {
             LOG.warn("New user '{}' not created", targetUser.getUsername());
@@ -115,7 +119,9 @@ public class GitLab extends AbstractApplication {
       for (GLUser sourceUser : sourceUsers) {
         if (!excludedUsers.contains(sourceUser.getUsername())) {
           if (sourceUser.getState() != GLState.BLOCKED) {
-            client.blockUser(sourceUser);
+            if (client.blockUser(sourceUser)) {
+              publishSyncEvent(GitLabEvents.userBlocked(sourceUser));
+            }
             sourceUser.setState(GLState.BLOCKED);
           }
           syncedUsers.put(sourceUser.getUsername(), sourceUser);
@@ -143,9 +149,13 @@ public class GitLab extends AbstractApplication {
               GLPermission targetPermission = targetGroup.getPermission(targetMember);
               if (sourcePermission != targetPermission) {
                 if (sourcePermission != null) {
-                  client.removeMemberFromGroup(sourceGroup, sourceUser);
+                  if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
+                    publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
+                  }
                 }
-                client.addMemberToGroup(sourceGroup, sourceUser, targetPermission);
+                if (client.addMemberToGroup(sourceGroup, sourceUser, targetPermission)) {
+                  publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, sourceGroup));
+                }
                 sourceGroup.addMember(sourceUser, targetPermission);
               }
             }
@@ -154,7 +164,9 @@ public class GitLab extends AbstractApplication {
           // Remove blocked users
           for (GLUser sourceUser : sourceGroup.getMembers()) {
             if (sourceUser.getState() == GLState.BLOCKED) {
-              client.removeMemberFromGroup(sourceGroup, sourceUser);
+              if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
+                publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
+              }
             }
           }
 
@@ -175,6 +187,7 @@ public class GitLab extends AbstractApplication {
           if (newGroup == null) {
             LOG.warn("New group '{}' not created", targetGroup.getPath());
           } else {
+            publishSyncEvent(GitLabEvents.groupCreated(newGroup));
             LOG.info("Adding users to new group '{}'", newGroup.getPath());
 
             // Adding group members
@@ -182,7 +195,9 @@ public class GitLab extends AbstractApplication {
               GLPermission targetPermission = targetGroup.getPermission(targetMember);
               GLUser sourceUser = syncedUsers.get(targetMember.getUsername());
               if (sourceUser != null) {
-                client.addMemberToGroup(newGroup, sourceUser, targetPermission);
+                if (client.addMemberToGroup(newGroup, sourceUser, targetPermission)) {
+                  publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, newGroup));
+                }
               }
             }
           }
@@ -193,7 +208,9 @@ public class GitLab extends AbstractApplication {
       for (GLGroup sourceGroup : sourceGroups) {
         for (GLUser sourceUser : sourceGroup.getMembers()) {
           if (!excludedUsers.contains(sourceUser.getUsername())) {
-            client.removeMemberFromGroup(sourceGroup, sourceUser);
+            if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
+              publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
+            }
           }
         }
       }
@@ -212,7 +229,9 @@ public class GitLab extends AbstractApplication {
           if (!group.isMember(user)) {
             LOG.warn("Found user '{}' in project '{}' which is not a member of group '{}'", user.getUsername(),
                 project.getPath(), group.getPath());
-            client.removeMemberFromProject(project, user);
+            if (client.removeMemberFromProject(project, user)) {
+              publishSyncEvent(GitLabEvents.userRemovedFromProject(user, project));
+            }
           }
         }
       }
@@ -251,7 +270,7 @@ public class GitLab extends AbstractApplication {
         if (glUser == null) {
           String externUid = idpUser.getAttribute(providerUidAttribute);
           LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), externUid);
-          glUser = new GLUser();
+          glUser = new GLUser(idpUser);
           glUser.setUsername(idpUser.getUsername());
           glUser.setName(idpUser.getName());
           String email = idpUser.getEmail();
@@ -277,7 +296,7 @@ public class GitLab extends AbstractApplication {
       for (GLUser member : group.getMembers()) {
         GLUser user = users.get(member.getUsername());
         if (user == null) {
-          user = new GLUser();
+          user = new GLUser(member.getIdpUser());
           user.setUsername(member.getUsername());
           user.setName(member.getName());
           user.setEmail(member.getEmail());

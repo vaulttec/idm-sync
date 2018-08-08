@@ -15,5 +15,6 @@ proxy:
 
 sync:
   rate: 600000  # 10 min
+  auditEventRepositoryCapacity: 1000
   enabledApps:
     - "*"

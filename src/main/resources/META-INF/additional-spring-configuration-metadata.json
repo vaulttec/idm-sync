@@ -15,6 +15,11 @@
     "description": "Fixed rate (in msec) the sync task is scheduled"
   },
   {
+    "name": "sync.auditEventRepositoryCapacity",
+    "type": "java.lang.Long",
+    "description": "Number of entries stored in cirular buffer of InMemoryAuditEventRepository"
+  },
+  {
     "name": "keycloak.server-url",
     "type": "java.lang.String",
     "description": "URL of Keycloak server"

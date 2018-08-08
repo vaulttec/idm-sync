@@ -20,12 +20,15 @@ package org.vaulttec.idm.sync.app.gitlab;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.vaulttec.idm.sync.idp.IdpUser;
+
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GLUser {
 
+  private final IdpUser idpUser;
   private String id;
   private String username;
   private String name;
@@ -36,6 +39,18 @@ public class GLUser {
   private String provider;
   private String externUid;
   private Map<String, GLGroup> groups = new HashMap<>();
+
+  GLUser() {
+    this.idpUser = null;
+  }
+  
+  GLUser(IdpUser idpUser) {
+    this.idpUser = idpUser;
+  }
+
+  public IdpUser getIdpUser() {
+    return idpUser;
+  }
 
   public String getId() {
     return id;

@@ -245,8 +245,7 @@ public class KeycloakClient extends AbstractRestClient {
     return new HttpEntity<String>("grant_type=client_credentials", headers);
   }
 
-  private void updateMultiValueMap(Map<String, List<String>> existing,
-      Map<String, List<String>> additional) {
+  private void updateMultiValueMap(Map<String, List<String>> existing, Map<String, List<String>> additional) {
     for (String key : additional.keySet()) {
       List<String> additionalValues = additional.get(key);
       if (additionalValues == null) {

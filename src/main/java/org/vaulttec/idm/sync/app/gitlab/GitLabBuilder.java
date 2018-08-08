@@ -17,9 +17,12 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
+import org.springframework.boot.actuate.audit.AuditEventRepository;
+
 public final class GitLabBuilder {
 
   private final GitLabClient client;
+  private final AuditEventRepository eventRepository;
   private String groupSearch;
   private String groupRegExp;
   private String excludedUsers;
@@ -27,7 +30,8 @@ public final class GitLabBuilder {
   private String providerName;
   private String providerUidAttribute;
 
-  public GitLabBuilder(GitLabClient client) {
+  public GitLabBuilder(GitLabClient client, AuditEventRepository eventRepository) {
+    this.eventRepository = eventRepository;
     this.client = client;
   }
 
@@ -71,7 +75,7 @@ public final class GitLabBuilder {
     if (excludedUsers == null) {
       excludedUsers = "root,ghost";
     }
-    return new GitLab(client, groupSearch, groupRegExp, excludedUsers, removeProjectMembers, providerName,
-        providerUidAttribute);
+    return new GitLab(client, eventRepository, groupSearch, groupRegExp, excludedUsers, removeProjectMembers,
+        providerName, providerUidAttribute);
   }
 }

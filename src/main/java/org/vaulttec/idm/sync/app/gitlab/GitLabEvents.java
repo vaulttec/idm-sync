@@ -19,37 +19,40 @@ package org.vaulttec.idm.sync.app.gitlab;
 
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.vaulttec.idm.sync.SyncEvents;
+import org.vaulttec.idm.sync.idp.IdpUser;
 
 public abstract class GitLabEvents extends SyncEvents {
 
-  public static AuditEvent userCreated(String username) {
-    return createEvent(USER_CREATED, GitLab.GITLAB_APPLICATION_ID, "username=" + username);
+  public static AuditEvent userCreated(GLUser user, IdpUser idpUser) {
+    return createEvent(USER_CREATED, GitLab.GITLAB_APPLICATION_ID, "idpUserId=" + idpUser.getId(),
+        "userId=" + user.getId(), "username=" + user.getName());
   }
 
-  public static AuditEvent userBlocked(String username) {
-    return createEvent(USER_BLOCKED, GitLab.GITLAB_APPLICATION_ID, "username=" + username);
+  public static AuditEvent userBlocked(GLUser user) {
+    return createEvent(USER_BLOCKED, GitLab.GITLAB_APPLICATION_ID, "username=" + user.getName());
   }
 
-  public static AuditEvent userUnblocked(String username) {
-    return createEvent(USER_UNBLOCKED, GitLab.GITLAB_APPLICATION_ID, "username=" + username);
+  public static AuditEvent userUnblocked(GLUser user) {
+    return createEvent(USER_UNBLOCKED, GitLab.GITLAB_APPLICATION_ID, "username=" + user.getName());
   }
 
-  public static AuditEvent userAddedToGroup(String username, String groupPath) {
-    return createEvent(USER_ADDED, GitLab.GITLAB_APPLICATION_ID, "username=" + username, "targetType=group",
-        "groupPath=" + groupPath);
+  public static AuditEvent userAddedToGroup(GLUser user, GLGroup group) {
+    return createEvent(USER_ADDED, GitLab.GITLAB_APPLICATION_ID, "username=" + user.getName(), "compositeType=group",
+        "compositeId=" + group.getId(), "compositeName=" + group.getPath());
   }
 
-  public static AuditEvent userRemovedFromGroup(String username, String groupPath) {
-    return createEvent(USER_REMOVED, GitLab.GITLAB_APPLICATION_ID, "username=" + username, "targetType=group",
-        "groupPath=" + groupPath);
+  public static AuditEvent userRemovedFromGroup(GLUser user, GLGroup group) {
+    return createEvent(USER_REMOVED, GitLab.GITLAB_APPLICATION_ID, "username=" + user.getName(), "compositeType=group",
+        "compositeName=" + group.getPath());
   }
 
-  public static AuditEvent userRemovedFromProject(String username, String projectPath) {
-    return createEvent(USER_REMOVED, GitLab.GITLAB_APPLICATION_ID, "username=" + username, "targetType=project",
-        "projectPath=" + projectPath);
+  public static AuditEvent userRemovedFromProject(GLUser user, GLProject project) {
+    return createEvent(USER_REMOVED, GitLab.GITLAB_APPLICATION_ID, "username=" + user.getName(),
+        "compositeType=project", "compositeName=" + project.getPath());
   }
 
-  public static AuditEvent groupCreated(String groupPath) {
-    return createEvent(GROUP_CREATED, GitLab.GITLAB_APPLICATION_ID, "groupPath=" + groupPath);
+  public static AuditEvent groupCreated(GLGroup group) {
+    return createEvent(COMPOSITE_CREATED, GitLab.GITLAB_APPLICATION_ID, "compositeType=group",
+        "compositeId=" + group.getId(), "compositeName=" + group.getPath());
   }
 }

@@ -17,10 +17,16 @@
  */
 package org.vaulttec.idm.sync;
 
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.vaulttec.idm.sync.app.Application;
@@ -29,18 +35,20 @@ import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 
 @Component
-public class SyncTask extends AbstractSyncEventPublisher {
+public class SyncTask {
 
   private static final Logger LOG = LoggerFactory.getLogger(SyncTask.class);
 
   private final IdentityProvider idp;
   private final List<Application> apps;
   private final SyncConfig syncConfig;
+  private final AuditEventRepository eventRepository;
 
-  SyncTask(IdentityProvider idp, List<Application> apps, SyncConfig syncConfig) {
+  SyncTask(IdentityProvider idp, List<Application> apps, SyncConfig syncConfig, AuditEventRepository eventRepository) {
     this.idp = idp;
     this.apps = apps;
     this.syncConfig = syncConfig;
+    this.eventRepository = eventRepository;
   }
 
   @Scheduled(fixedRateString = "${sync.rate}")
@@ -50,34 +58,54 @@ public class SyncTask extends AbstractSyncEventPublisher {
       for (Application app : apps) {
         if (syncConfig.getEnabledApps().contains("*") || syncConfig.getEnabledApps().contains(app.getId())) {
           LOG.info("Syncing '{}'", app.getName());
-          publishSyncEvent(SyncEvents.createEvent(SyncEvents.SYNC_STARTED, app.getId()));
-          List<IdpGroup> groups = getGroupsWithMembers(app.getGroupSearch());
+          List<IdpGroup> groups = idp.getGroups(app.getGroupSearch());
           if (groups != null) {
+            Map<String, IdpUser> users = retrieveMembersForGroups(groups);
+
+            // Sync groups
+            Instant start = Instant.now();
             app.sync(groups);
+
+            // Update user attributes for newly created application users
+            updateUserAttributes(users, start);
           }
-          publishSyncEvent(SyncEvents.createEvent(SyncEvents.SYNC_FINISHED, app.getId()));
         }
       }
     }
     LOG.info("Finished syncing...");
   }
 
-  protected List<IdpGroup> getGroupsWithMembers(String search) {
-    LOG.debug("Retrieving groups with members: search={}", search);
-    List<IdpGroup> groups = idp.getGroups(search);
-    if (groups != null) {
-      for (IdpGroup group : groups) {
-        List<IdpUser> members = idp.getGroupMembers(group);
-        if (members != null) {
-          for (IdpUser member : members) {
-            member.addGroup(group);
-            group.addMember(member);
-          }
+  private Map<String, IdpUser> retrieveMembersForGroups(List<IdpGroup> groups) {
+    Map<String, IdpUser> users = new HashMap<>();
+    for (IdpGroup group : groups) {
+      List<IdpUser> members = idp.getGroupMembers(group);
+      if (members != null) {
+        for (IdpUser member : members) {
+          member.addGroup(group);
+          group.addMember(member);
+          users.put(member.getId(), member);
         }
       }
-      return groups;
     }
-    return null;
+    return users;
   }
 
+  private void updateUserAttributes(Map<String, IdpUser> users, Instant start) {
+    List<AuditEvent> events = eventRepository.find(SyncEvents.PRINCIPAL, start, SyncEvents.USER_CREATED);
+    for (AuditEvent event : events) {
+      Map<String, Object> data = event.getData();
+      if (data.containsKey("application") && data.containsKey("idpUserId") && data.containsKey("userId")) {
+        String idpUserId = (String) data.get("idpUserId");
+        IdpUser user = users.get(idpUserId);
+        if (user != null) {
+          String appUserId = (String) data.get("userId");
+          String appId = (String) data.get("application");
+          String attributeName = appId.toUpperCase() + "_USER_ID";
+          Map<String, List<String>> attributes = new HashMap<>();
+          attributes.put(attributeName, Arrays.asList(appUserId));
+          idp.updateUserAttributes(user, attributes);
+        }
+      }
+    }
+  }
 }

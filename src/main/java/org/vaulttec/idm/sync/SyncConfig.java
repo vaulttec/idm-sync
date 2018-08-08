@@ -20,15 +20,31 @@ package org.vaulttec.idm.sync;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.boot.actuate.audit.InMemoryAuditEventRepository;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
+@Configuration
 @ConfigurationProperties(prefix = "sync")
 public class SyncConfig {
+  private int auditEventRepositoryCapacity;
   private List<String> enabledApps = new ArrayList<>();
+
+  public int getAuditEventRepositoryCapacity() {
+    return auditEventRepositoryCapacity;
+  }
+
+  public void setAuditEventRepositoryCapacity(int auditEventRepositoryCapacity) {
+    this.auditEventRepositoryCapacity = auditEventRepositoryCapacity;
+  }
 
   public List<String> getEnabledApps() {
     return enabledApps;
+  }
+
+  @Bean
+  public InMemoryAuditEventRepository auditEventRepository() throws Exception {
+    return new InMemoryAuditEventRepository(getAuditEventRepositoryCapacity());
   }
 }

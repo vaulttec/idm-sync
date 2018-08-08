@@ -17,14 +17,12 @@
  */
 package org.vaulttec.idm.sync.app;
 
-import org.vaulttec.idm.sync.AbstractSyncEventPublisher;
-
-public abstract class AbstractClient extends AbstractSyncEventPublisher {
+public abstract class AbstractClient {
 
   protected final String serverUrl;
   protected final int perPage;
 
-  public AbstractClient(String serverUrl, int perPage) {
+  protected AbstractClient(String serverUrl, int perPage) {
     this.serverUrl = serverUrl;
     this.perPage = perPage;
   }
