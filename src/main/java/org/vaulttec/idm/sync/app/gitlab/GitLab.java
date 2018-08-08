@@ -36,7 +36,7 @@ public class GitLab extends AbstractApplication {
 
   private static final Logger LOG = LoggerFactory.getLogger(GitLab.class);
 
-  public static final String GITLAB_APPLICATION_ID = "gitlab";
+  public static final String APPLICATION_ID = "gitlab";
   protected static final String DUMMY_EMAIL_DOMAIN = "@b.c";
 
   private final GitLabClient client;
@@ -58,7 +58,7 @@ public class GitLab extends AbstractApplication {
 
   @Override
   public String getId() {
-    return GITLAB_APPLICATION_ID;
+    return APPLICATION_ID;
   }
 
   @Override
