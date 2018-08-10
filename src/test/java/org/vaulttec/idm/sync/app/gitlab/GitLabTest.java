@@ -25,7 +25,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +43,8 @@ import org.vaulttec.idm.sync.idp.IdpUser;
 public class GitLabTest {
 
   private static final String PROVIDER_NAME = "ldapmain";
+  private static final String EXTERNAL_UID_ATTRIBUTE = "LDAP_ENTRY_DN";
+  private static final String EXTERNAL_UID = "42";
   private GitLabClient client;
   private AuditEventRepository eventRepository;
   private GitLab app;
@@ -49,7 +54,7 @@ public class GitLabTest {
     client = mock(GitLabClient.class);
     eventRepository = mock(AuditEventRepository.class);
     app = new GitLabBuilder(client, eventRepository).groupRegExp("APP_GIT_(?<groupPath>\\w*)_(?<permission>\\w*)")
-        .removeProjectMembers(true).providerName(PROVIDER_NAME).providerUidAttribute("LDAP_ENTRY_DN").build();
+        .removeProjectMembers(true).providerName(PROVIDER_NAME).providerUidAttribute(EXTERNAL_UID_ATTRIBUTE).build();
   }
 
   @Test
@@ -97,7 +102,7 @@ public class GitLabTest {
     glGroup.setName("grp1");
 
     when(client.getUsers(null)).thenReturn(new ArrayList<>());
-    when(client.createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, null)).thenReturn(glUser);
+    when(client.createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID)).thenReturn(glUser);
     when(client.getGroupsWithMembers(null)).thenReturn(new ArrayList<>());
     when(client.createGroup("grp1", "grp1", null)).thenReturn(glGroup);
     when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
@@ -107,6 +112,9 @@ public class GitLabTest {
     idpUser.setFirstName("User");
     idpUser.setLastName("1");
     idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -120,7 +128,7 @@ public class GitLabTest {
     verify(client).getUsers(null);
     verify(client).getGroupsWithMembers(null);
     verify(client).createGroup("grp1", "grp1", null);
-    verify(client).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, null);
+    verify(client).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID);
     verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
     verify(client, never()).removeMemberFromGroup(glGroup, null);
     verify(client, never()).blockUser(null);
@@ -153,7 +161,7 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
-    when(client.createUser("user2", "User 2", "user2@acme.com", PROVIDER_NAME, null)).thenReturn(glUser2);
+    when(client.createUser("user2", "User 2", "user2@acme.com", PROVIDER_NAME, EXTERNAL_UID)).thenReturn(glUser2);
     when(client.addMemberToGroup(glGroup, glUser2, GLPermission.DEVELOPER)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
@@ -161,11 +169,15 @@ public class GitLabTest {
     idpUser.setFirstName("User");
     idpUser.setLastName("1");
     idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
     IdpUser idpUser2 = new IdpUser();
     idpUser2.setUsername("user2");
     idpUser2.setFirstName("User");
     idpUser2.setLastName("2");
     idpUser2.setEmail("user2@acme.com");
+    idpUser2.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -184,8 +196,8 @@ public class GitLabTest {
     verify(client).getUsers(null);
     verify(client).getGroupsWithMembers(null);
     verify(client, never()).createGroup("grp1", "grp1", null);
-    verify(client, never()).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, null);
-    verify(client).createUser("user2", "User 2", "user2@acme.com", PROVIDER_NAME, null);
+    verify(client, never()).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID);
+    verify(client).createUser("user2", "User 2", "user2@acme.com", PROVIDER_NAME, EXTERNAL_UID);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
     verify(client).addMemberToGroup(glGroup, glUser2, GLPermission.DEVELOPER);
     verify(client, never()).removeMemberFromGroup(glGroup, null);
@@ -211,7 +223,7 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(new ArrayList<>());
     when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
-    when(client.createUser("user1", "User 1", "user1" + GitLab.DUMMY_EMAIL_DOMAIN, PROVIDER_NAME, null))
+    when(client.createUser("user1", "User 1", "user1" + GitLab.DUMMY_EMAIL_DOMAIN, PROVIDER_NAME, EXTERNAL_UID))
         .thenReturn(glUser);
     when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
 
@@ -220,6 +232,9 @@ public class GitLabTest {
     idpUser.setFirstName("User");
     idpUser.setLastName("1");
     idpUser.setEmail(null); // missing email
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -233,7 +248,7 @@ public class GitLabTest {
     verify(client).getUsers(null);
     verify(client).getGroupsWithMembers(null);
     verify(client, never()).createGroup("grp1", "grp1", null);
-    verify(client).createUser("user1", "User 1", "user1" + GitLab.DUMMY_EMAIL_DOMAIN, PROVIDER_NAME, null);
+    verify(client).createUser("user1", "User 1", "user1" + GitLab.DUMMY_EMAIL_DOMAIN, PROVIDER_NAME, EXTERNAL_UID);
     verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
     verify(client, never()).removeMemberFromGroup(glGroup, null);
     verify(client, never()).blockUser(null);
@@ -323,6 +338,65 @@ public class GitLabTest {
   }
 
   @Test
+  public void testSyncGroupWithRemovedUsers() {
+    List<GLUser> glUsers = new ArrayList<>();
+    GLUser glUser = new GLUser();
+    glUser.setUsername("user1");
+    glUser.setName("User 1");
+    glUser.setEmail("user1@acme.com");
+    glUser.setState(GLState.ACTIVE);
+    glUsers.add(glUser);
+    GLUser glUser2 = new GLUser();
+    glUser2.setUsername("user2");
+    glUser2.setName("User 2");
+    glUser2.setEmail("user2@acme.com");
+    glUser2.setState(GLState.ACTIVE);
+    glUsers.add(glUser2);
+
+    List<GLGroup> glGroups = new ArrayList<>();
+    GLGroup glGroup = new GLGroup();
+    glGroup.setPath("grp1");
+    glGroup.setName("grp1");
+    glGroup.addMember(glUser, GLPermission.MAINTAINER);
+    glGroup.addMember(glUser2, GLPermission.MAINTAINER);
+    glGroups.add(glGroup);
+
+    when(client.getUsers(null)).thenReturn(glUsers);
+    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.removeMemberFromGroup(glGroup, glUser2)).thenReturn(true);
+    when(client.blockUser(glUser2)).thenReturn(true);
+
+    IdpUser idpUser = new IdpUser();
+    idpUser.setUsername("user1");
+    idpUser.setFirstName("User");
+    idpUser.setLastName("1");
+    idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
+
+    List<IdpGroup> idpGroups = new ArrayList<>();
+    IdpGroup idpGroup = new IdpGroup();
+    idpGroup.setName("APP_GIT_grp1_Maintainer");
+    idpGroup.setPath("/APP_GIT_grp1_Maintainer");
+    idpGroup.addMember(idpUser);
+    idpGroups.add(idpGroup);
+
+    app.sync(idpGroups);
+
+    verify(client).getUsers(null);
+    verify(client).getGroupsWithMembers(null);
+    verify(client, never()).createGroup("grp1", "grp1", null);
+    verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
+    verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
+    verify(client).removeMemberFromGroup(glGroup, glUser2);
+    verify(client).blockUser(glUser2);
+    verify(client, never()).unblockUser(glUser);
+
+    verify(eventRepository, times(2)).add(any(AuditEvent.class));
+  }
+
+  @Test
   public void testSyncGroupWithBlockedUsers() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
@@ -355,6 +429,9 @@ public class GitLabTest {
     idpUser.setFirstName("User");
     idpUser.setLastName("1");
     idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -403,6 +480,9 @@ public class GitLabTest {
     idpUser.setFirstName("User");
     idpUser.setLastName("1");
     idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -452,6 +532,9 @@ public class GitLabTest {
     idpUser.setFirstName("User");
     idpUser.setLastName("1");
     idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -530,12 +613,16 @@ public class GitLabTest {
     idpUser.setFirstName("User");
     idpUser.setLastName("1");
     idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
 
     IdpUser idpUser2 = new IdpUser();
     idpUser2.setUsername("user2");
     idpUser2.setFirstName("User");
     idpUser2.setLastName("2");
     idpUser2.setEmail("user2@acme.com");
+    idpUser2.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();

@@ -104,13 +104,16 @@ public class GitLab extends AbstractApplication {
         if (sourceUsers.contains(targetUser)) {
           sourceUsers.remove(targetUser);
         } else {
-          GLUser newUser = client.createUser(targetUser.getUsername(), targetUser.getName(), targetUser.getEmail(),
-              targetUser.getProvider(), targetUser.getExternUid());
-          if (newUser != null) {
-            publishSyncEvent(GitLabEvents.userCreated(newUser, targetUser.getIdpUser()));
-            syncedUsers.put(newUser.getUsername(), newUser);
+          if (StringUtils.hasText(targetUser.getProvider()) && !StringUtils.hasText(targetUser.getExternUid())) {
+            LOG.warn("New user '{}' not created - missing required external user ID for provider '{}'",
+                targetUser.getUsername(), targetUser.getProvider());
           } else {
-            LOG.warn("New user '{}' not created", targetUser.getUsername());
+            GLUser newUser = client.createUser(targetUser.getUsername(), targetUser.getName(), targetUser.getEmail(),
+                targetUser.getProvider(), targetUser.getExternUid());
+            if (newUser != null) {
+              publishSyncEvent(GitLabEvents.userCreated(newUser, targetUser.getIdpUser()));
+              syncedUsers.put(newUser.getUsername(), newUser);
+            }
           }
         }
       }
@@ -184,11 +187,8 @@ public class GitLab extends AbstractApplication {
           sourceGroups.remove(targetGroup);
         } else {
           GLGroup newGroup = client.createGroup(targetGroup.getPath(), targetGroup.getPath(), null);
-          if (newGroup == null) {
-            LOG.warn("New group '{}' not created", targetGroup.getPath());
-          } else {
+          if (newGroup != null) {
             publishSyncEvent(GitLabEvents.groupCreated(newGroup));
-            LOG.info("Adding users to new group '{}'", newGroup.getPath());
 
             // Adding group members
             for (GLUser targetMember : targetGroup.getMembers()) {
@@ -227,8 +227,8 @@ public class GitLab extends AbstractApplication {
         List<GLUser> projectUsers = client.getProjectUsers(project);
         for (GLUser user : projectUsers) {
           if (!group.isMember(user)) {
-            LOG.warn("Found user '{}' in project '{}' which is not a member of group '{}'", user.getUsername(),
-                project.getPath(), group.getPath());
+            LOG.warn("Removing user '{}' from project '{}' because this user is not a member of group '{}'",
+                user.getUsername(), project.getPath(), group.getPath());
             if (client.removeMemberFromProject(project, user)) {
               publishSyncEvent(GitLabEvents.userRemovedFromProject(user, project));
             }

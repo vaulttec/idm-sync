@@ -233,7 +233,8 @@ public class GitLabClient extends AbstractRestClient {
     Map<String, String> uriVariables = createUriVariables("username", username, "name", name, "email", email,
         "password", UUID.randomUUID().toString());
 
-    // Associate user with external authentication provider, e.g. LDAP
+    // Associate user with external authentication provider (e.g. LDAP)
+    // as described in https://gitlab.com/gitlab-org/gitlab-ee/issues/699#note_19890755
     if (provider != null && externUid != null) {
       usersUrl += "&provider={provider}&extern_uid={externUid}";
       uriVariables.put("provider", provider);
