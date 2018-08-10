@@ -33,3 +33,16 @@ apps:
         name: ldapmain
         uidAttribute: LDAP_ENTRY_DN
       perPage: 100
+  - factory: org.vaulttec.idm.sync.app.mattermost.MattermostFactory
+    config:
+      serverUrl: http://torstens-macbook-pro.local:8084
+      personalAccessToken: gm06h9hs57bnucehgj6pfg9avr
+      group:
+        search: "%_GIT_%"
+        regExp: .*_GIT_(?<teamName>\w*)_.*
+      sync:
+        excludedUsers: mmadmin
+      auth:
+        serviceName: gitlab
+        uidAttribute: GITLAB_USER_ID
+      perPage: 100

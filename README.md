@@ -1,7 +1,7 @@
 IDM Synchronizer
 ================
 
-Spring Boot application for synchronizing identity information (group memberships) from an identity provider (Keycloak) with various applications (GitLab)
+Spring Boot application for synchronizing identity information (group memberships) from an identity provider (Keycloak) with various applications (GitLab, Mattermost, ...)
 
 
 
