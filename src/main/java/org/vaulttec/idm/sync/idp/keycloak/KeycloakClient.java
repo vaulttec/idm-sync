@@ -251,16 +251,7 @@ public class KeycloakClient extends AbstractRestClient {
       if (additionalValues == null) {
         existing.remove(key);
       } else {
-        List<String> existingValues = existing.get(key);
-        if (existingValues == null) {
-          existing.put(key, new ArrayList<>(additionalValues));
-        } else {
-          for (String additionalValue : additionalValues) {
-            if (!existingValues.contains(additionalValue)) {
-              existingValues.add(additionalValue);
-            }
-          }
-        }
+        existing.put(key, new ArrayList<>(additionalValues));
       }
     }
   }

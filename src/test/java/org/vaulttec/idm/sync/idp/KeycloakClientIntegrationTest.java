@@ -83,11 +83,28 @@ public class KeycloakClientIntegrationTest {
   public void testUpdateUserAttributes() {
     List<IdpUser> users = client.getUsers("b0123");
     assertThat(users).isNotNull().isNotEmpty();
+
     Map<String, List<String>> attributes = new HashMap<>();
     attributes.put("testAttribute", Arrays.asList("testValue"));
     assertTrue(client.updateUserAttributes(users.get(0), attributes));
+
+    users = client.getUsers("b0123");
+    assertThat(users).isNotNull().isNotEmpty();
+    assertThat(users.get(0).getAttribute("testAttribute")).isEqualTo("testValue");
+
+    attributes.put("testAttribute", Arrays.asList("testValue2"));
+    assertTrue(client.updateUserAttributes(users.get(0), attributes));
+
+    users = client.getUsers("b0123");
+    assertThat(users).isNotNull().isNotEmpty();
+    assertThat(users.get(0).getAttribute("testAttribute")).isEqualTo("testValue2");
+
     attributes.put("testAttribute", null);
     assertTrue(client.updateUserAttributes(users.get(0), attributes));
+
+    users = client.getUsers("b0123");
+    assertThat(users).isNotNull().isNotEmpty();
+    assertThat(users.get(0).getAttribute("testAttribute")).isNull();
   }
 
   @Test
