@@ -1,25 +1,25 @@
+server.port: 8081
+
 management:
   endpoints:
     web:
       exposure:
         include:
-        - "*"
+        - health
+        - info
+        - auditevents
 
 idp:
-  factory: org.vaulttec.idm.sync.idp.keycloak.KeycloakFactory
   config:
-    serverUrl: 
-    realm: sso
+    serverUrl: http://torstens-macbook-pro.local:8080/auth
     client:
-      id: idm-sync
-      secret: 
-    perPage: 100
+      secret: 47cae011-870e-4727-a5f0-1f92323bf829
 
 apps:
   - factory: org.vaulttec.idm.sync.app.gitlab.GitLabFactory
     config:
-      serverUrl: 
-      personalAccessToken: 
+      serverUrl: http://torstens-macbook-pro.local:8083
+      personalAccessToken: d9FPuic1fFd-gzNvpmw4
       group:
         search: "%_GIT_%"
         regExp: .*_GIT_(?<groupPath>\w*)_(?<permission>\w*)
@@ -30,3 +30,17 @@ apps:
         name: ldapmain
         uidAttribute: LDAP_ENTRY_DN
       perPage: 100
+  - factory: org.vaulttec.idm.sync.app.mattermost.MattermostFactory
+    config:
+      serverUrl: http://torstens-macbook-pro.local:8084
+      personalAccessToken: pdybh3z18bbb9jutubwhtyt9te
+      group:
+        search: "%_GIT_%"
+        regExp: .*_GIT_(?<teamName>\w*)_.*
+      sync:
+        excludedUsers: mmadmin
+      auth:
+        serviceName: gitlab
+        uidAttribute: GITLAB_USER_ID
+      perPage: 100
+      

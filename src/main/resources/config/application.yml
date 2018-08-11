@@ -18,3 +18,13 @@ sync:
   auditEventRepositoryCapacity: 1000
   enabledApps:
     - "*"
+
+idp:
+  factory: org.vaulttec.idm.sync.idp.keycloak.KeycloakFactory
+  config:
+    serverUrl:
+    realm: sso
+    client:
+      id: idm-sync
+      secret:
+    perPage: 100

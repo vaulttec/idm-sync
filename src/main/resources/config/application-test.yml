@@ -9,14 +9,10 @@ sync:
   rate: 3000
 
 idp:
-  factory: org.vaulttec.idm.sync.idp.keycloak.KeycloakFactory
   config:
     serverUrl: http://torstens-macbook-pro.local:8080/auth
-    realm: sso
     client:
-      id: idm-sync
       secret: 47cae011-870e-4727-a5f0-1f92323bf829
-    perPage: 100
 
 apps:
   - factory: org.vaulttec.idm.sync.app.gitlab.GitLabFactory
@@ -36,7 +32,7 @@ apps:
   - factory: org.vaulttec.idm.sync.app.mattermost.MattermostFactory
     config:
       serverUrl: http://torstens-macbook-pro.local:8084
-      personalAccessToken: gm06h9hs57bnucehgj6pfg9avr
+      personalAccessToken: pdybh3z18bbb9jutubwhtyt9te
       group:
         search: "%_GIT_%"
         regExp: .*_GIT_(?<teamName>\w*)_.*

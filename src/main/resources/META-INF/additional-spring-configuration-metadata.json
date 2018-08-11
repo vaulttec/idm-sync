@@ -88,5 +88,40 @@
     "name": "gitlab.provider.uid-attribute",
     "type": "java.lang.String",
     "description": "Name of IDP user attribute which holds the UID of the external federation provider, e.g. 'LDAP_ENTRY_DN' for Keycloak's LDAP user federation provider"
+  },
+  {
+    "name": "sync.enabled-apps",
+    "type": "java.util.List",
+    "description": "List with IDs of application which should be used in SyncTask (use '*' for all applications)"
+  },
+  {
+    "name": "idp.factory",
+    "type": "java.lang.String",
+    "description": "Full qualified name of factory class for creating an identity provider instance"
+  },
+  {
+    "name": "idp.config.server-url",
+    "type": "java.lang.String",
+    "description": "URL of identity provider"
+  },
+  {
+    "name": "idp.config.realm",
+    "type": "java.lang.String",
+    "description": "Realm name of identity provider"
+  },
+  {
+    "name": "idp.config.client.id",
+    "type": "java.lang.String",
+    "description": "Client name of identity provider"
+  },
+  {
+    "name": "idp.config.client.secret",
+    "type": "java.lang.String",
+    "description": "Client secret of identity provider"
+  },
+  {
+    "name": "idp.config.per-page",
+    "type": "java.lang.String",
+    "description": "Number of entries per response from identity provider"
   }
 ]}
