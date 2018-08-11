@@ -39,8 +39,9 @@ public class MattermostFactory implements ApplicationFactory {
     MattermostClient mmClient = mmcBuilder.build();
 
     MattermostBuilder mmBuilder = new MattermostBuilder(mmClient, eventRepository)
-        .groupRegExp(config.get("group.regExp")).excludedUsers(config.get("sync.excludedUsers"))
-        .authService(config.get("auth.serviceName")).authUidAttribute(config.get("auth.uidAttribute"));
+        .groupSearch(config.get("group.search")).groupRegExp(config.get("group.regExp"))
+        .excludedUsers(config.get("sync.excludedUsers")).authService(config.get("auth.serviceName"))
+        .authUidAttribute(config.get("auth.uidAttribute"));
     return mmBuilder.build();
   }
 }

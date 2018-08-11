@@ -38,8 +38,8 @@ public class GitLabFactory implements ApplicationFactory {
     }
     GitLabClient glClient = glcBuilder.build();
 
-    GitLabBuilder glBuilder = new GitLabBuilder(glClient, eventRepository).groupRegExp(config.get("group.regExp"))
-        .excludedUsers(config.get("sync.excludedUsers"))
+    GitLabBuilder glBuilder = new GitLabBuilder(glClient, eventRepository).groupSearch(config.get("group.search"))
+        .groupRegExp(config.get("group.regExp")).excludedUsers(config.get("sync.excludedUsers"))
         .removeProjectMembers(Boolean.parseBoolean(config.get("sync.removeProjectMembers")))
         .providerName(config.get("provider.name")).providerUidAttribute(config.get("provider.uidAttribute"));
     return glBuilder.build();
