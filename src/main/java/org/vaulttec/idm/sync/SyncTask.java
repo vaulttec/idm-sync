@@ -18,6 +18,7 @@
 package org.vaulttec.idm.sync;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -43,12 +44,25 @@ public class SyncTask {
   private final List<Application> apps;
   private final SyncConfig syncConfig;
   private final AuditEventRepository eventRepository;
+  private Instant lastSyncTime;
 
   SyncTask(IdentityProvider idp, List<Application> apps, SyncConfig syncConfig, AuditEventRepository eventRepository) {
     this.idp = idp;
     this.apps = apps;
     this.syncConfig = syncConfig;
     this.eventRepository = eventRepository;
+  }
+
+  public List<String> getApplicationNames() {
+    List<String> appNames = new ArrayList<>();
+    for (Application app : apps) {
+      appNames.add(app.getName());
+    }
+    return appNames;
+  }
+
+  public Instant getLastSyncTime() {
+    return lastSyncTime;
   }
 
   @Scheduled(fixedRateString = "${sync.rate}")
@@ -71,6 +85,7 @@ public class SyncTask {
           }
         }
       }
+      lastSyncTime = Instant.now();
     }
     LOG.info("Finished syncing...");
   }
