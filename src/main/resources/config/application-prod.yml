@@ -1,5 +1,3 @@
-server.port: 8081
-
 management:
   endpoints:
     web:
@@ -9,16 +7,14 @@ management:
         - info
         - auditevents
 
-
 keycloak:
-  serverUrl: 
-  clientSecret: 
+  serverUrl: ${KEYCLOAK_SERVER_URL}
+  clientSecret: ${KEYCLOAK_CLIENT_SECRET}
 
 gitlab:
-  serverUrl: 
-  personalAccessToken: 
+  serverUrl: ${GITLAB_SERVER_URL}
+  personalAccessToken: ${GITLAB_PERSONAL_ACCESS_TOKEN}
 
 mattermost:
-  serverUrl: 
-  personalAccessToken: 
-      
+  serverUrl: ${MATTERMOST_SERVER_URL}
+  personalAccessToken: ${MATTERMOST_PERSONAL_ACCESS_TOKEN}
