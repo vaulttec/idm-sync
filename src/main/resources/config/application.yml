@@ -22,9 +22,38 @@ sync:
 idp:
   factory: org.vaulttec.idm.sync.idp.keycloak.KeycloakFactory
   config:
-    serverUrl:
+    serverUrl: ${keycloak.serverUrl}
     realm: sso
     client:
       id: idm-sync
-      secret:
+      secret: ${keycloak.clientSecret}
     perPage: 100
+
+apps:
+  - factory: org.vaulttec.idm.sync.app.gitlab.GitLabFactory
+    config:
+      serverUrl: ${gitlab.serverUrl}
+      personalAccessToken: ${gitlab.personalAccessToken}
+      group:
+        search: "%_GIT_%"
+        regExp: .*_GIT_(?<groupPath>\w*)_(?<permission>\w*)
+      sync:
+        excludedUsers: root, ghost, gladmin
+        removeProjectMembers: true
+      provider:
+        name: ldapmain
+        uidAttribute: LDAP_ENTRY_DN
+      perPage: 100
+  - factory: org.vaulttec.idm.sync.app.mattermost.MattermostFactory
+    config:
+      serverUrl: ${mattermost.serverUrl}
+      personalAccessToken: ${mattermost.personalAccessToken}
+      group:
+        search: "%_GIT_%"
+        regExp: .*_GIT_(?<teamName>\w*)_.*
+      sync:
+        excludedUsers: mmadmin
+      auth:
+        serviceName: gitlab
+        uidAttribute: GITLAB_USER_ID
+      perPage: 100
