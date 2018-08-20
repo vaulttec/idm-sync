@@ -109,7 +109,7 @@ public class KeycloakClientIntegrationTest {
 
   @Test
   public void testGetGroups() {
-    List<IdpGroup> groups = client.getGroups(env.getProperty("idp.config.group.search"));
+    List<IdpGroup> groups = client.getGroups(null);
     assertThat(groups).isNotNull().isNotEmpty();
     for (IdpGroup group : groups) {
       LOG.info("{}", group.getPath());
@@ -119,7 +119,7 @@ public class KeycloakClientIntegrationTest {
   @Test
   @Ignore
   public void testUpdateGroupAttributes() {
-    List<IdpGroup> groups = client.getGroups(env.getProperty("idp.config.group.search"));
+    List<IdpGroup> groups = client.getGroups(null);
     assertThat(groups).isNotNull().isNotEmpty();
     Map<String, List<String>> attributes = new HashMap<>();
     attributes.put("testAttribute", Arrays.asList("testValue"));
@@ -130,7 +130,7 @@ public class KeycloakClientIntegrationTest {
 
   @Test
   public void testGetGroupMembers() {
-    List<IdpGroup> groups = client.getGroups(env.getProperty("idp.config.group.search"));
+    List<IdpGroup> groups = client.getGroups(null);
     assertThat(groups).isNotNull().isNotEmpty();
     for (IdpGroup group : groups) {
       LOG.info("{}", group.getPath());
