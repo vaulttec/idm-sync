@@ -19,15 +19,12 @@ package org.vaulttec.idm.sync;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.actuate.audit.AuditEvent;
-import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.vaulttec.idm.sync.app.Application;
@@ -43,14 +40,12 @@ public class SyncTask {
   private final IdentityProvider idp;
   private final List<Application> apps;
   private final SyncConfig syncConfig;
-  private final AuditEventRepository eventRepository;
   private Instant lastSyncTime;
 
-  SyncTask(IdentityProvider idp, List<Application> apps, SyncConfig syncConfig, AuditEventRepository eventRepository) {
+  SyncTask(IdentityProvider idp, List<Application> apps, SyncConfig syncConfig) {
     this.idp = idp;
     this.apps = apps;
     this.syncConfig = syncConfig;
-    this.eventRepository = eventRepository;
   }
 
   public List<String> getApplicationNames() {
@@ -75,13 +70,8 @@ public class SyncTask {
           List<IdpGroup> groups = idp.getGroups(app.getGroupSearch());
           if (groups != null) {
             Map<String, IdpUser> users = retrieveMembersForGroups(groups);
-
-            // Sync groups
-            Instant start = Instant.now();
             app.sync(groups);
-
-            // Update user attributes for newly created application users
-            updateUserAttributes(users, start);
+            updateModifiedUserAttributes(users);
           }
         }
       }
@@ -105,21 +95,10 @@ public class SyncTask {
     return users;
   }
 
-  private void updateUserAttributes(Map<String, IdpUser> users, Instant start) {
-    List<AuditEvent> events = eventRepository.find(SyncEvents.PRINCIPAL, start, SyncEvents.USER_CREATED);
-    for (AuditEvent event : events) {
-      Map<String, Object> data = event.getData();
-      if (data.containsKey("application") && data.containsKey("idpUserId") && data.containsKey("userId")) {
-        String idpUserId = (String) data.get("idpUserId");
-        IdpUser user = users.get(idpUserId);
-        if (user != null) {
-          String appUserId = (String) data.get("userId");
-          String appId = (String) data.get("application");
-          String attributeName = appId.toUpperCase() + "_USER_ID";
-          Map<String, List<String>> attributes = new HashMap<>();
-          attributes.put(attributeName, Arrays.asList(appUserId));
-          idp.updateUserAttributes(user, attributes);
-        }
+  private void updateModifiedUserAttributes(Map<String, IdpUser> users) {
+    for (IdpUser user : users.values()) {
+      if (user.isAttributesModified()) {
+        idp.updateUserAttributes(user, user.getAttributes());
       }
     }
   }

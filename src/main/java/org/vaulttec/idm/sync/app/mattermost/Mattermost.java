@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.app.mattermost;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class Mattermost extends AbstractApplication {
   private static final Logger LOG = LoggerFactory.getLogger(Mattermost.class);
 
   public static final String APPLICATION_ID = "mattermost";
+  public static final String USER_ID_ATTRIBUTE = "MATTERMOST_USER_ID";
   protected static final String DUMMY_EMAIL_DOMAIN = "@b.c";
 
   private final MattermostClient client;
@@ -84,7 +86,8 @@ public class Mattermost extends AbstractApplication {
 
       // Activate existing users associated with Mattermost team now
       for (MMUser sourceUser : sourceUsers) {
-        if (targetUsers.containsKey(sourceUser.getUsername())) {
+        MMUser targetUser = targetUsers.get(sourceUser.getUsername());
+        if (targetUser != null) {
           if (!sourceUser.isActive()) {
             if (client.updateUserActiveStatus(sourceUser, true)) {
               publishSyncEvent(MattermostEvents.userActivated(sourceUser));
@@ -92,6 +95,7 @@ public class Mattermost extends AbstractApplication {
             sourceUser.setDeleteAt("0");
           }
           syncedUsers.put(sourceUser.getUsername(), sourceUser);
+          updateUserIdAttribute(targetUser.getIdpUser(), sourceUser);
         }
       }
 
@@ -108,8 +112,9 @@ public class Mattermost extends AbstractApplication {
             MMUser newUser = client.createUser(targetUser.getUsername(), targetUser.getFirstName(),
                 targetUser.getLastName(), targetUser.getEmail(), targetUser.getAuthService(), targetUser.getAuthData());
             if (newUser != null) {
-              publishSyncEvent(MattermostEvents.userCreated(newUser, targetUser.getIdpUser()));
+              publishSyncEvent(MattermostEvents.userCreated(newUser));
               syncedUsers.put(newUser.getUsername(), newUser);
+              updateUserIdAttribute(targetUser.getIdpUser(), newUser);
             }
           }
         }
@@ -131,6 +136,18 @@ public class Mattermost extends AbstractApplication {
       return syncedUsers;
     }
     return null;
+  }
+
+  /**
+   * Make sure that the value of the IdP's user attribute "MATTERMOST_USER_ID"
+   * with given Mattermost user's ID.
+   */
+  protected void updateUserIdAttribute(IdpUser idpUser, MMUser mmUser) {
+    String userId = idpUser.getAttribute(USER_ID_ATTRIBUTE);
+    if (userId == null || !userId.equals(mmUser.getId())) {
+      idpUser.getAttributes().put(USER_ID_ATTRIBUTE, Arrays.asList(mmUser.getId()));
+      idpUser.setAttributesModified(true);
+    }
   }
 
   protected boolean syncTeams(Map<String, MMTeam> targetTeams, Map<String, MMUser> syncedUsers) {

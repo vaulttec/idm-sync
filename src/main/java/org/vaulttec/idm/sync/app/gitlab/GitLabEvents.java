@@ -19,13 +19,11 @@ package org.vaulttec.idm.sync.app.gitlab;
 
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.vaulttec.idm.sync.SyncEvents;
-import org.vaulttec.idm.sync.idp.IdpUser;
 
 public abstract class GitLabEvents extends SyncEvents {
 
-  public static AuditEvent userCreated(GLUser user, IdpUser idpUser) {
-    return createEvent(USER_CREATED, GitLab.APPLICATION_ID, "idpUserId=" + idpUser.getId(),
-        "userId=" + user.getId(), "username=" + user.getUsername());
+  public static AuditEvent userCreated(GLUser user) {
+    return createEvent(USER_CREATED, GitLab.APPLICATION_ID, "userId=" + user.getId(), "username=" + user.getUsername());
   }
 
   public static AuditEvent userBlocked(GLUser user) {
@@ -47,12 +45,12 @@ public abstract class GitLabEvents extends SyncEvents {
   }
 
   public static AuditEvent userRemovedFromProject(GLUser user, GLProject project) {
-    return createEvent(USER_REMOVED, GitLab.APPLICATION_ID, "username=" + user.getUsername(),
-        "compositeType=project", "compositeName=" + project.getPath());
+    return createEvent(USER_REMOVED, GitLab.APPLICATION_ID, "username=" + user.getUsername(), "compositeType=project",
+        "compositeName=" + project.getPath());
   }
 
   public static AuditEvent groupCreated(GLGroup group) {
-    return createEvent(COMPOSITE_CREATED, GitLab.APPLICATION_ID, "compositeType=group",
-        "compositeId=" + group.getId(), "compositeName=" + group.getPath());
+    return createEvent(COMPOSITE_CREATED, GitLab.APPLICATION_ID, "compositeType=group", "compositeId=" + group.getId(),
+        "compositeName=" + group.getPath());
   }
 }

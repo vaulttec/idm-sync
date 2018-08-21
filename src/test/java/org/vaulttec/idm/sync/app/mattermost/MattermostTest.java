@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.app.mattermost;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -36,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
+import org.vaulttec.idm.sync.app.gitlab.GitLab;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 
@@ -43,7 +45,7 @@ import org.vaulttec.idm.sync.idp.IdpUser;
 public class MattermostTest {
 
   private static final String AUTH_SERVICE = "gitlab";
-  private static final String AUTH_UID_ATTRIBUTE = "GITLAB_USER_ID";
+  private static final String AUTH_UID_ATTRIBUTE = GitLab.USER_ID_ATTRIBUTE;
   private static final String AUTH_DATA = "42";
   private MattermostClient client;
   private AuditEventRepository eventRepository;
@@ -90,6 +92,7 @@ public class MattermostTest {
   @Test
   public void testSyncCreateNewTeamAndUser() {
     MMUser mmUser = new MMUser();
+    mmUser.setId("1");
     mmUser.setUsername("user1");
     mmUser.setFirstName("John");
     mmUser.setLastName("Doo 1");
@@ -130,6 +133,8 @@ public class MattermostTest {
     verify(client).addMemberToTeam(team, mmUser, null);
     verify(client, never()).removeMemberFromTeam(team, null);
     verify(client, never()).updateUserActiveStatus(null, false);
+
+    assertThat(idpUser.isAttributesModified()).isTrue();
 
     verify(eventRepository, times(3)).add(any(AuditEvent.class));
   }
@@ -448,6 +453,7 @@ public class MattermostTest {
   public void testSyncTeamWithRemovedUsers() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
+    mmUser.setId("1");
     mmUser.setUsername("user1");
     mmUser.setFirstName("User");
     mmUser.setLastName("1");
@@ -455,6 +461,7 @@ public class MattermostTest {
     mmUser.setDeleteAt("0");
     mmUsers.add(mmUser);
     MMUser mmUser2 = new MMUser();
+    mmUser2.setId("2");
     mmUser2.setUsername("user2");
     mmUser2.setFirstName("User");
     mmUser2.setLastName("2");
@@ -481,6 +488,7 @@ public class MattermostTest {
     idpUser.setEmail("user1@acme.com");
     Map<String, List<String>> attributes = new HashMap<>();
     attributes.put(AUTH_UID_ATTRIBUTE, Arrays.asList(AUTH_DATA));
+    attributes.put(Mattermost.USER_ID_ATTRIBUTE, Arrays.asList("1"));
     idpUser.setAttributes(attributes);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
@@ -500,6 +508,62 @@ public class MattermostTest {
     verify(client).removeMemberFromTeam(team, mmUser2);
     verify(client).updateUserActiveStatus(mmUser2, false);
 
+    assertThat(idpUser.isAttributesModified()).isFalse();
+
     verify(eventRepository, times(2)).add(any(AuditEvent.class));
+  }
+
+  @Test
+  public void testSyncUpdateUserAttributesForExistingUser() {
+    List<MMUser> mmUsers = new ArrayList<>();
+    MMUser mmUser = new MMUser();
+    mmUser.setId("1");
+    mmUser.setUsername("user1");
+    mmUser.setFirstName("User");
+    mmUser.setLastName("1");
+    mmUser.setEmail("user1@acme.com");
+    mmUser.setDeleteAt("1");
+    mmUser.setAuthService(AUTH_SERVICE);
+    mmUser.setAuthService(AUTH_DATA);
+    mmUsers.add(mmUser);
+
+    List<MMTeam> teams = new ArrayList<>();
+    MMTeam team = new MMTeam();
+    team.setName("team1");
+    team.addMember(mmUser);
+    teams.add(team);
+
+    when(client.getUsers()).thenReturn(mmUsers);
+    when(client.getTeamsWithMembers()).thenReturn(teams);
+
+    IdpUser idpUser = new IdpUser();
+    idpUser.setUsername("user1");
+    idpUser.setFirstName("User");
+    idpUser.setLastName("1");
+    idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(AUTH_UID_ATTRIBUTE, Arrays.asList(AUTH_DATA));
+    idpUser.setAttributes(attributes);
+
+    List<IdpGroup> idpGroups = new ArrayList<>();
+    IdpGroup idpGroup = new IdpGroup();
+    idpGroup.setName("APP_GIT_team1_Maintainer");
+    idpGroup.setPath("/APP_GIT_team1_Maintainer");
+    idpGroup.addMember(idpUser);
+    idpGroups.add(idpGroup);
+
+    app.sync(idpGroups);
+
+    verify(client).getUsers();
+    verify(client).getTeamsWithMembers();
+    verify(client, never()).createTeam("team1", "team1");
+    verify(client, never()).createUser("user1", "User", "1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA);
+    verify(client, never()).addMemberToTeam(team, mmUser, null);
+    verify(client, never()).removeMemberFromTeam(team, null);
+    verify(client, never()).updateUserActiveStatus(null, false);
+
+    assertThat(idpUser.isAttributesModified()).isTrue();
+
+    verify(eventRepository, never()).add(any(AuditEvent.class));
   }
 }

@@ -33,6 +33,7 @@ public class IdpUser {
   private String lastName;
   private String email;
   private Map<String, List<String>> attributes = new HashMap<>();
+  private boolean attributesModified;
   private List<IdpGroup> groups = new ArrayList<>();
 
   public String getId() {
@@ -90,6 +91,14 @@ public class IdpUser {
 
   public void setAttributes(Map<String, List<String>> attributes) {
     this.attributes = attributes;
+  }
+
+  public boolean isAttributesModified() {
+    return attributesModified;
+  }
+
+  public void setAttributesModified(boolean attributesModified) {
+    this.attributesModified = attributesModified;
   }
 
   public List<IdpGroup> getGroups() {

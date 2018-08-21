@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -92,6 +93,7 @@ public class GitLabTest {
   @Test
   public void testSyncCreateNewGroupAndUser() {
     GLUser glUser = new GLUser();
+    glUser.setId("1");
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
@@ -133,6 +135,8 @@ public class GitLabTest {
     verify(client, never()).removeMemberFromGroup(glGroup, null);
     verify(client, never()).blockUser(null);
     verify(client, never()).unblockUser(null);
+
+    assertThat(idpUser.isAttributesModified()).isTrue();
 
     verify(eventRepository, times(3)).add(any(AuditEvent.class));
   }
@@ -646,5 +650,58 @@ public class GitLabTest {
     verify(client).removeMemberFromProject(glProject, glUser2);
 
     verify(eventRepository, times(2)).add(any(AuditEvent.class));
+  }
+
+  @Test
+  public void testSyncUpdateUserAttributesForExistingUser() {
+    List<GLUser> glUsers = new ArrayList<>();
+    GLUser glUser = new GLUser();
+    glUser.setId("1");
+    glUser.setUsername("user1");
+    glUser.setName("User 1");
+    glUser.setEmail("user1@acme.com");
+    glUser.setState(GLState.ACTIVE);
+    glUsers.add(glUser);
+
+    List<GLGroup> glGroups = new ArrayList<>();
+    GLGroup glGroup = new GLGroup();
+    glGroup.setPath("grp1");
+    glGroup.setName("grp1");
+    glGroup.addMember(glUser, GLPermission.MAINTAINER);
+    glGroups.add(glGroup);
+
+    when(client.getUsers(null)).thenReturn(glUsers);
+    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+
+    IdpUser idpUser = new IdpUser();
+    idpUser.setUsername("user1");
+    idpUser.setFirstName("User");
+    idpUser.setLastName("1");
+    idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
+
+    List<IdpGroup> idpGroups = new ArrayList<>();
+    IdpGroup idpGroup = new IdpGroup();
+    idpGroup.setName("APP_GIT_grp1_Maintainer");
+    idpGroup.setPath("/APP_GIT_grp1_Maintainer");
+    idpGroup.addMember(idpUser);
+    idpGroups.add(idpGroup);
+
+    app.sync(idpGroups);
+
+    verify(client).getUsers(null);
+    verify(client).getGroupsWithMembers(null);
+    verify(client, never()).createGroup("grp1", "grp1", null);
+    verify(client, never()).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID);
+    verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
+    verify(client, never()).removeMemberFromGroup(glGroup, null);
+    verify(client, never()).blockUser(null);
+    verify(client, never()).unblockUser(null);
+
+    assertThat(idpUser.isAttributesModified()).isTrue();
+
+    verify(eventRepository, never()).add(any(AuditEvent.class));
   }
 }

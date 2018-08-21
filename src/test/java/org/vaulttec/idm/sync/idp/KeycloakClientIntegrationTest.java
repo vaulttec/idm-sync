@@ -109,7 +109,7 @@ public class KeycloakClientIntegrationTest {
 
   @Test
   public void testGetGroups() {
-    List<IdpGroup> groups = client.getGroups(null);
+    List<IdpGroup> groups = client.getGroups(env.getProperty("apps[0].config.group.search"));
     assertThat(groups).isNotNull().isNotEmpty();
     for (IdpGroup group : groups) {
       LOG.info("{}", group.getPath());
@@ -130,7 +130,7 @@ public class KeycloakClientIntegrationTest {
 
   @Test
   public void testGetGroupMembers() {
-    List<IdpGroup> groups = client.getGroups(null);
+    List<IdpGroup> groups = client.getGroups(env.getProperty("apps[0].config.group.search"));
     assertThat(groups).isNotNull().isNotEmpty();
     for (IdpGroup group : groups) {
       LOG.info("{}", group.getPath());

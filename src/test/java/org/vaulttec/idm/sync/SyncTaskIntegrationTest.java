@@ -22,7 +22,6 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.IfProfileValue;
@@ -43,12 +42,10 @@ public class SyncTaskIntegrationTest {
   private List<Application> applications;
   @Autowired
   private SyncConfig syncConfig;
-  @Autowired
-  private AuditEventRepository eventRepository;
 
   @Test
   public void testSync() throws InstantiationException, IllegalAccessException {
-    SyncTask task = new SyncTask(idp, applications, syncConfig, eventRepository);
+    SyncTask task = new SyncTask(idp, applications, syncConfig);
     task.sync();
   }
 }

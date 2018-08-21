@@ -19,13 +19,12 @@ package org.vaulttec.idm.sync.app.mattermost;
 
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.vaulttec.idm.sync.SyncEvents;
-import org.vaulttec.idm.sync.idp.IdpUser;
 
 public abstract class MattermostEvents extends SyncEvents {
 
-  public static AuditEvent userCreated(MMUser user, IdpUser idpUser) {
-    return createEvent(USER_CREATED, Mattermost.APPLICATION_ID, "idpUserId=" + idpUser.getId(),
-        "userId=" + user.getId(), "username=" + user.getUsername());
+  public static AuditEvent userCreated(MMUser user) {
+    return createEvent(USER_CREATED, Mattermost.APPLICATION_ID, "userId=" + user.getId(),
+        "username=" + user.getUsername());
   }
 
   public static AuditEvent userDeactivated(MMUser user) {

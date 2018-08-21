@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ public class GitLab extends AbstractApplication {
   private static final Logger LOG = LoggerFactory.getLogger(GitLab.class);
 
   public static final String APPLICATION_ID = "gitlab";
+  public static final String USER_ID_ATTRIBUTE = "GITLAB_USER_ID";
   protected static final String DUMMY_EMAIL_DOMAIN = "@b.c";
 
   private final GitLabClient client;
@@ -87,7 +89,8 @@ public class GitLab extends AbstractApplication {
 
       // Unblock existing users associated with GitLab group now
       for (GLUser sourceUser : sourceUsers) {
-        if (targetUsers.containsKey(sourceUser.getUsername())) {
+        GLUser targetUser = targetUsers.get(sourceUser.getUsername());
+        if (targetUser != null) {
           if (sourceUser.getState() == GLState.BLOCKED) {
             if (client.unblockUser(sourceUser)) {
               publishSyncEvent(GitLabEvents.userUnblocked(sourceUser));
@@ -95,6 +98,7 @@ public class GitLab extends AbstractApplication {
             sourceUser.setState(GLState.ACTIVE);
           }
           syncedUsers.put(sourceUser.getUsername(), sourceUser);
+          updateUserIdAttribute(targetUser.getIdpUser(), sourceUser);
         }
       }
 
@@ -111,8 +115,9 @@ public class GitLab extends AbstractApplication {
             GLUser newUser = client.createUser(targetUser.getUsername(), targetUser.getName(), targetUser.getEmail(),
                 targetUser.getProvider(), targetUser.getExternUid());
             if (newUser != null) {
-              publishSyncEvent(GitLabEvents.userCreated(newUser, targetUser.getIdpUser()));
+              publishSyncEvent(GitLabEvents.userCreated(newUser));
               syncedUsers.put(newUser.getUsername(), newUser);
+              updateUserIdAttribute(targetUser.getIdpUser(), newUser);
             }
           }
         }
@@ -133,6 +138,18 @@ public class GitLab extends AbstractApplication {
       return syncedUsers;
     }
     return null;
+  }
+
+  /**
+   * Make sure that the value of the IdP's user attribute "GITLAB_USER_ID" with
+   * given GitLab user's ID.
+   */
+  protected void updateUserIdAttribute(IdpUser idpUser, GLUser glUser) {
+    String userId = idpUser.getAttribute(USER_ID_ATTRIBUTE);
+    if (userId == null || !userId.equals(glUser.getId())) {
+      idpUser.getAttributes().put(USER_ID_ATTRIBUTE, Arrays.asList(glUser.getId()));
+      idpUser.setAttributesModified(true);
+    }
   }
 
   protected boolean syncGroups(Map<String, GLGroup> targetGroups, Map<String, GLUser> syncedUsers) {
@@ -271,8 +288,6 @@ public class GitLab extends AbstractApplication {
           String externUid = idpUser.getAttribute(providerUidAttribute);
           LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), externUid);
           glUser = new GLUser(idpUser);
-          glUser.setUsername(idpUser.getUsername());
-          glUser.setName(idpUser.getName());
           String email = idpUser.getEmail();
           if (!StringUtils.hasText(email)) {
             email = idpUser.getUsername() + DUMMY_EMAIL_DOMAIN;
