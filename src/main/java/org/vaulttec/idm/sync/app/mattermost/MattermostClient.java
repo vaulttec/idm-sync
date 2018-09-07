@@ -98,7 +98,9 @@ public class MattermostClient extends AbstractRestClient {
           List<MMTeamMember> teamMembers = getTeamMembers(team);
           if (teamMembers != null) {
             for (MMTeamMember teamMember : teamMembers) {
-              team.addMember(users.get(teamMember.getUserId()));
+              MMRole role = MMRole.fromJson(teamMember.getRoles()).contains(MMRole.TEAM_ADMIN) ? MMRole.TEAM_ADMIN
+                  : MMRole.TEAM_USER;
+              team.addMember(users.get(teamMember.getUserId()), role);
             }
           }
         }
@@ -175,13 +177,15 @@ public class MattermostClient extends AbstractRestClient {
     }
     if (role == null) {
       role = MMRole.TEAM_USER;
-
     }
     LOG.info("Adding user '{}' to team '{}' as {}", user.getUsername(), team.getName(), role);
     String teamMembersUrl = serverUrl + "/api/v4/teams/{teamId}/members";
     Map<String, String> uriVariables = createUriVariables("teamId", team.getId());
-    HttpEntity<String> entity = new HttpEntity<String>("{\"team_id\": \"" + team.getId() + "\", \"user_id\": \""
-        + user.getId() + "\", \"roles\": \"" + role.name().toLowerCase() + "\"}", authenticationEntity.getHeaders());
+    String roles = MMRole.TEAM_USER.name().toLowerCase()
+        + (!role.equals(MMRole.TEAM_USER) ? " " + role.name().toLowerCase() : "");
+    HttpEntity<String> entity = new HttpEntity<String>(
+        "{\"team_id\": \"" + team.getId() + "\", \"user_id\": \"" + user.getId() + "\", \"roles\": \"" + roles + "\"}",
+        authenticationEntity.getHeaders());
     try {
       restTemplate.exchange(teamMembersUrl, HttpMethod.POST, entity, Void.class, uriVariables);
       return true;
@@ -248,7 +252,8 @@ public class MattermostClient extends AbstractRestClient {
         + firstName + "\", \"last_name\": \"" + lastName + "\"";
 
     // Associate user with external authentication provider (GitLab)
-    // as described in https://forum.mattermost.org/t/solved-how-to-transition-a-user-to-gitlab-authentication/1070
+    // as described in
+    // https://forum.mattermost.org/t/solved-how-to-transition-a-user-to-gitlab-authentication/1070
     if (StringUtils.hasText(authService) && StringUtils.hasText(authData)) {
       entityBody += ", \"auth_service\": \"" + authService + "\", \"auth_data\": \"" + authData + "\"";
     }

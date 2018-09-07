@@ -50,7 +50,7 @@ apps:
       personalAccessToken: ${mattermost.personalAccessToken}
       group:
         search: "%_GIT_%"
-        regExp: .*_GIT_(?<teamName>\w*)_.*
+        regExp: .*_GIT_(?<teamName>\w*)_(?<teamAdmin>Maintainer)?.*
       sync:
         excludedUsers: mmadmin
       auth:

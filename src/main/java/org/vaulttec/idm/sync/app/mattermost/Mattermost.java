@@ -163,11 +163,12 @@ public class Mattermost extends AbstractApplication {
           for (MMUser targetMember : targetTeam.getMembers()) {
             MMUser sourceUser = syncedUsers.get(targetMember.getUsername());
             if (sourceUser != null) {
-              if (!sourceTeam.hasMember(sourceUser)) {
-                if (client.addMemberToTeam(sourceTeam, sourceUser, null)) {
-                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, sourceTeam));
+              MMRole role = targetTeam.getMemberRole(targetMember.getUsername());
+              if (!sourceTeam.hasMember(sourceUser) || sourceTeam.getMemberRole(targetMember.getUsername()) != role) {
+                if (client.addMemberToTeam(sourceTeam, sourceUser, role)) {
+                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, sourceTeam, role));
                 }
-                sourceTeam.addMember(sourceUser);
+                sourceTeam.addMember(sourceUser, role);
               }
             }
           }
@@ -197,8 +198,9 @@ public class Mattermost extends AbstractApplication {
             for (MMUser targetMember : targetTeam.getMembers()) {
               MMUser sourceUser = syncedUsers.get(targetMember.getUsername());
               if (sourceUser != null) {
+                MMRole role = targetTeam.getMemberRole(targetMember.getUsername());
                 if (client.addMemberToTeam(newTeam, sourceUser, null)) {
-                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, newTeam));
+                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, newTeam, role));
                 }
               }
             }
@@ -227,7 +229,15 @@ public class Mattermost extends AbstractApplication {
       LOG.debug("Converting IDP group '{}'", idpGroup.getPath());
       Matcher matcher = getGroupNameMatcher(idpGroup.getName());
       String teamName = matcher.group("teamName");
-      LOG.debug("Extracted Mattermost information from IDP group: teamname={}", teamName);
+      MMRole teamRole = MMRole.TEAM_USER;
+      try {
+        if (matcher.group("teamAdmin") != null) {
+          teamRole = MMRole.TEAM_ADMIN;
+        }
+      } catch (IllegalArgumentException e) {
+        // ignore missing teamAdmin matching group 
+      }
+      LOG.debug("Extracted Mattermost information from IDP group: teamName={}, teamRole={}", teamName, teamRole);
       if (teamName == null) {
         throw new IllegalStateException("Could not extract Mattermost team path from IDP group");
       }
@@ -259,7 +269,7 @@ public class Mattermost extends AbstractApplication {
           mmUsers.put(idpUser.getUsername(), mmUser);
         }
         mmUser.addTeam(mmTeam);
-        mmTeam.addMember(mmUser);
+        mmTeam.addMember(mmUser, teamRole);
       }
     }
   }

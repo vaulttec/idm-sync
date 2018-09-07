@@ -30,6 +30,7 @@ public class MMTeam {
   private String name;
   private String type;
   private Map<String, MMUser> members = new HashMap<>();
+  private Map<String, MMRole> memberRoles = new HashMap<>();
 
   public String getId() {
     return id;
@@ -63,12 +64,17 @@ public class MMTeam {
     return members.get(username);
   }
 
+  public MMRole getMemberRole(String username) {
+    return memberRoles.get(username);
+  }
+
   public Collection<MMUser> getMembers() {
     return members.values();
   }
 
-  public void addMember(MMUser member) {
+  public void addMember(MMUser member, MMRole role) {
     members.put(member.getUsername(), member);
+    memberRoles.put(member.getUsername(), role);
   }
 
   @Override

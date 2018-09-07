@@ -55,8 +55,9 @@ public class MattermostTest {
   public void setUp() throws Exception {
     client = mock(MattermostClient.class);
     eventRepository = mock(AuditEventRepository.class);
-    app = new MattermostBuilder(client, eventRepository).groupRegExp(".*_GIT_(?<teamName>\\w*)_.*")
-        .authService(AUTH_SERVICE).authUidAttribute("GITLAB_USER_ID").build();
+    app = new MattermostBuilder(client, eventRepository)
+        .groupRegExp(".*_GIT_(?<teamName>\\w*)_(?<teamAdmin>Maintainer)?.*").authService(AUTH_SERVICE)
+        .authUidAttribute("GITLAB_USER_ID").build();
   }
 
   @Test
@@ -163,13 +164,13 @@ public class MattermostTest {
     List<MMTeam> teams = new ArrayList<>();
     MMTeam team = new MMTeam();
     team.setName("team1");
-    team.addMember(mmUser);
+    team.addMember(mmUser, MMRole.TEAM_USER);
     teams.add(team);
 
     when(client.getUsers()).thenReturn(mmUsers);
     when(client.getTeamsWithMembers()).thenReturn(teams);
     when(client.createUser("user2", "User", "2", "user2@acme.com", AUTH_SERVICE, AUTH_DATA)).thenReturn(mmUser2);
-    when(client.addMemberToTeam(team, mmUser2, null)).thenReturn(true);
+    when(client.addMemberToTeam(team, mmUser2, MMRole.TEAM_USER)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -207,7 +208,7 @@ public class MattermostTest {
     verify(client, never()).createUser("user1", "User", "1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA);
     verify(client).createUser("user2", "User", "2", "user2@acme.com", AUTH_SERVICE, AUTH_DATA);
     verify(client, never()).addMemberToTeam(team, mmUser, null);
-    verify(client).addMemberToTeam(team, mmUser2, null);
+    verify(client).addMemberToTeam(team, mmUser2, MMRole.TEAM_USER);
     verify(client, never()).removeMemberFromTeam(team, null);
     verify(client, never()).updateUserActiveStatus(null, false);
 
@@ -232,7 +233,7 @@ public class MattermostTest {
     when(client.getTeamsWithMembers()).thenReturn(teams);
     when(client.createUser("user1", "User", "1", "user1" + Mattermost.DUMMY_EMAIL_DOMAIN, AUTH_SERVICE, AUTH_DATA))
         .thenReturn(mmUser);
-    when(client.addMemberToTeam(team, mmUser, null)).thenReturn(true);
+    when(client.addMemberToTeam(team, mmUser, MMRole.TEAM_ADMIN)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -256,7 +257,7 @@ public class MattermostTest {
     verify(client).getTeamsWithMembers();
     verify(client, never()).createTeam("team1", "team1");
     verify(client).createUser("user1", "User", "1", "user1" + Mattermost.DUMMY_EMAIL_DOMAIN, AUTH_SERVICE, AUTH_DATA);
-    verify(client).addMemberToTeam(team, mmUser, null);
+    verify(client).addMemberToTeam(team, mmUser, MMRole.TEAM_ADMIN);
     verify(client, never()).removeMemberFromTeam(team, null);
     verify(client, never()).updateUserActiveStatus(null, false);
 
@@ -278,7 +279,7 @@ public class MattermostTest {
     MMTeam team = new MMTeam();
     team.setName("team1");
     teams.add(team);
-    team.addMember(mmUser);
+    team.addMember(mmUser, MMRole.TEAM_USER);
 
     when(client.getUsers()).thenReturn(mmUsers);
     when(client.getTeamsWithMembers()).thenReturn(teams);
@@ -319,7 +320,7 @@ public class MattermostTest {
     MMTeam team = new MMTeam();
     team.setName("team1");
     teams.add(team);
-    team.addMember(mmUser);
+    team.addMember(mmUser, MMRole.TEAM_USER);
 
     when(client.getUsers()).thenReturn(mmUsers);
     when(client.getTeamsWithMembers()).thenReturn(teams);
@@ -362,7 +363,7 @@ public class MattermostTest {
     List<MMTeam> teams = new ArrayList<>();
     MMTeam team = new MMTeam();
     team.setName("team1");
-    team.addMember(mmUser2);
+    team.addMember(mmUser2, MMRole.TEAM_USER);
     teams.add(team);
 
     when(client.getUsers()).thenReturn(mmUsers);
@@ -392,7 +393,7 @@ public class MattermostTest {
     verify(client).getTeamsWithMembers();
     verify(client, never()).createTeam("team1", "team1");
     verify(client, never()).createUser("user1", "User", "1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA);
-    verify(client).addMemberToTeam(team, mmUser, null);
+    verify(client).addMemberToTeam(team, mmUser, MMRole.TEAM_ADMIN);
     verify(client).removeMemberFromTeam(team, mmUser2);
     verify(client).updateUserActiveStatus(mmUser, true);
 
@@ -417,7 +418,7 @@ public class MattermostTest {
 
     when(client.getUsers()).thenReturn(mmUsers);
     when(client.getTeamsWithMembers()).thenReturn(teams);
-    when(client.addMemberToTeam(team, mmUser, null)).thenReturn(true);
+    when(client.addMemberToTeam(team, mmUser, MMRole.TEAM_ADMIN)).thenReturn(true);
     when(client.updateUserActiveStatus(mmUser, true)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
@@ -442,7 +443,7 @@ public class MattermostTest {
     verify(client).getTeamsWithMembers();
     verify(client, never()).createTeam("team1", "team1");
     verify(client, never()).createUser("user1", "User", "1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA);
-    verify(client).addMemberToTeam(team, mmUser, null);
+    verify(client).addMemberToTeam(team, mmUser, MMRole.TEAM_ADMIN);
     verify(client, never()).removeMemberFromTeam(team, mmUser);
     verify(client).updateUserActiveStatus(mmUser, true);
 
@@ -472,8 +473,8 @@ public class MattermostTest {
     List<MMTeam> teams = new ArrayList<>();
     MMTeam team = new MMTeam();
     team.setName("team1");
-    team.addMember(mmUser);
-    team.addMember(mmUser2);
+    team.addMember(mmUser, MMRole.TEAM_USER);
+    team.addMember(mmUser2, MMRole.TEAM_ADMIN);
     teams.add(team);
 
     when(client.getUsers()).thenReturn(mmUsers);
@@ -530,7 +531,7 @@ public class MattermostTest {
     List<MMTeam> teams = new ArrayList<>();
     MMTeam team = new MMTeam();
     team.setName("team1");
-    team.addMember(mmUser);
+    team.addMember(mmUser, MMRole.TEAM_USER);
     teams.add(team);
 
     when(client.getUsers()).thenReturn(mmUsers);
@@ -558,7 +559,7 @@ public class MattermostTest {
     verify(client).getTeamsWithMembers();
     verify(client, never()).createTeam("team1", "team1");
     verify(client, never()).createUser("user1", "User", "1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA);
-    verify(client, never()).addMemberToTeam(team, mmUser, null);
+    verify(client).addMemberToTeam(team, mmUser, MMRole.TEAM_ADMIN);
     verify(client, never()).removeMemberFromTeam(team, null);
     verify(client, never()).updateUserActiveStatus(null, false);
 
