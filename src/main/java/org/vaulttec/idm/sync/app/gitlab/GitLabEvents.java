@@ -34,9 +34,9 @@ public abstract class GitLabEvents extends SyncEvents {
     return createEvent(USER_UNBLOCKED, GitLab.APPLICATION_ID, "username=" + user.getUsername());
   }
 
-  public static AuditEvent userAddedToGroup(GLUser user, GLGroup group) {
+  public static AuditEvent userAddedToGroup(GLUser user, GLGroup group, GLPermission permission) {
     return createEvent(USER_ADDED, GitLab.APPLICATION_ID, "username=" + user.getUsername(), "compositeType=group",
-        "compositeId=" + group.getId(), "compositeName=" + group.getPath());
+        "compositeId=" + group.getId(), "compositeName=" + group.getPath(), "permission=" + permission);
   }
 
   public static AuditEvent userRemovedFromGroup(GLUser user, GLGroup group) {

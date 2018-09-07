@@ -174,7 +174,7 @@ public class GitLab extends AbstractApplication {
                   }
                 }
                 if (client.addMemberToGroup(sourceGroup, sourceUser, targetPermission)) {
-                  publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, sourceGroup));
+                  publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, sourceGroup, targetPermission));
                 }
                 sourceGroup.addMember(sourceUser, targetPermission);
               }
@@ -213,7 +213,7 @@ public class GitLab extends AbstractApplication {
               GLUser sourceUser = syncedUsers.get(targetMember.getUsername());
               if (sourceUser != null) {
                 if (client.addMemberToGroup(newGroup, sourceUser, targetPermission)) {
-                  publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, newGroup));
+                  publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, newGroup, targetPermission));
                 }
               }
             }
