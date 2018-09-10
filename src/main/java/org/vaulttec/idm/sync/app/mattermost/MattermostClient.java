@@ -168,29 +168,53 @@ public class MattermostClient extends AbstractRestClient {
     return null;
   }
 
-  public boolean addMemberToTeam(MMTeam team, MMUser user, MMRole role) {
+  public boolean addMemberToTeam(MMTeam team, MMUser user) {
     if (team == null || !StringUtils.hasText(team.getId())) {
       throw new IllegalStateException("Mattermost team with valid ID required");
     }
     if (user == null || !StringUtils.hasText(user.getId())) {
       throw new IllegalStateException("Mattermost user with valid ID required");
     }
-    if (role == null) {
-      role = MMRole.TEAM_USER;
-    }
-    LOG.info("Adding user '{}' to team '{}' as {}", user.getUsername(), team.getName(), role);
+    LOG.info("Adding user '{}' to team '{}' as {}", user.getUsername(), team.getName(), MMRole.TEAM_USER);
     String teamMembersUrl = serverUrl + "/api/v4/teams/{teamId}/members";
-    Map<String, String> uriVariables = createUriVariables("teamId", team.getId());
-    String roles = MMRole.TEAM_USER.name().toLowerCase()
-        + (!role.equals(MMRole.TEAM_USER) ? " " + role.name().toLowerCase() : "");
-    HttpEntity<String> entity = new HttpEntity<String>(
-        "{\"team_id\": \"" + team.getId() + "\", \"user_id\": \"" + user.getId() + "\", \"roles\": \"" + roles + "\"}",
+    Map<String, String> uriVariables = createUriVariables("teamId", team.getId(), "userId", user.getId());
+    HttpEntity<String> entity = new HttpEntity<String>("{\"team_id\": \"" + team.getId() + "\", \"user_id\": \""
+        + user.getId() + "\", \"roles\": \"" + MMRole.TEAM_USER.name().toLowerCase() + "\"}",
         authenticationEntity.getHeaders());
     try {
       restTemplate.exchange(teamMembersUrl, HttpMethod.POST, entity, Void.class, uriVariables);
       return true;
     } catch (RestClientException e) {
       LOG.error("Adding user to group failed", e);
+    }
+    return false;
+  }
+
+  public boolean updateTeamMemberRoles(MMTeam team, MMUser user, List<MMRole> roles) {
+    if (team == null || !StringUtils.hasText(team.getId())) {
+      throw new IllegalStateException("Mattermost team with valid ID required");
+    }
+    if (user == null || !StringUtils.hasText(user.getId())) {
+      throw new IllegalStateException("Mattermost user with valid ID required");
+    }
+    if (roles == null || roles.isEmpty()) {
+      throw new IllegalStateException("Mattermost team role required");
+    }
+    LOG.info("Updating user '{}' in team '{}' wih roles {}", user.getUsername(), team.getName(), roles);
+    String teamMemberRolesUrl = serverUrl + "/api/v4/teams/{teamId}/members/{userId}/roles";
+    Map<String, String> uriVariables = createUriVariables("teamId", team.getId(), "userId", user.getId());
+    String rolesText = roles.get(0).name().toLowerCase();
+    for (int i = 1; i < roles.size(); i++) {
+      rolesText += " " + roles.get(i).name().toLowerCase();
+    }
+    HttpEntity<String> entity = new HttpEntity<String>(
+        "{\"roles\": \"" + MMRole.TEAM_USER.name().toLowerCase() + " " + rolesText + "\"}",
+        authenticationEntity.getHeaders());
+    try {
+      restTemplate.exchange(teamMemberRolesUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
+      return true;
+    } catch (RestClientException e) {
+      LOG.error("Updating user roles in team failed", e);
     }
     return false;
   }

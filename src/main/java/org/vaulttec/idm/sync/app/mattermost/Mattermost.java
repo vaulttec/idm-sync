@@ -159,16 +159,21 @@ public class Mattermost extends AbstractApplication {
         MMTeam targetTeam = targetTeams.get(sourceTeam.getName());
         if (targetTeam != null) {
 
-          // Add missing members
+          // Add missing members and update member roles
           for (MMUser targetMember : targetTeam.getMembers()) {
             MMUser sourceUser = syncedUsers.get(targetMember.getUsername());
             if (sourceUser != null) {
-              MMRole role = targetTeam.getMemberRole(targetMember.getUsername());
-              if (!sourceTeam.hasMember(sourceUser) || sourceTeam.getMemberRole(targetMember.getUsername()) != role) {
-                if (client.addMemberToTeam(sourceTeam, sourceUser, role)) {
-                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, sourceTeam, role));
+              MMRole targetRole = targetTeam.getMemberRole(targetMember.getUsername());
+              if (!sourceTeam.hasMember(sourceUser)) {
+                if (client.addMemberToTeam(sourceTeam, sourceUser)) {
+                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, sourceTeam));
                 }
-                sourceTeam.addMember(sourceUser, role);
+                sourceTeam.addMember(sourceUser, MMRole.TEAM_USER);
+              }
+              if (sourceTeam.getMemberRole(targetMember.getUsername()) != targetRole) {
+                if (client.updateTeamMemberRoles(sourceTeam, sourceUser, Arrays.asList(targetRole))) {
+                  publishSyncEvent(MattermostEvents.userRoleUpdatedInTeam(sourceUser, sourceTeam, targetRole));
+                }
               }
             }
           }
@@ -199,8 +204,12 @@ public class Mattermost extends AbstractApplication {
               MMUser sourceUser = syncedUsers.get(targetMember.getUsername());
               if (sourceUser != null) {
                 MMRole role = targetTeam.getMemberRole(targetMember.getUsername());
-                if (client.addMemberToTeam(newTeam, sourceUser, null)) {
-                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, newTeam, role));
+                if (client.addMemberToTeam(newTeam, sourceUser)) {
+                  publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, newTeam));
+                }
+                if (role != MMRole.TEAM_USER
+                    && client.updateTeamMemberRoles(newTeam, sourceUser, Arrays.asList(role))) {
+                  publishSyncEvent(MattermostEvents.userRoleUpdatedInTeam(sourceUser, newTeam, role));
                 }
               }
             }
@@ -235,7 +244,7 @@ public class Mattermost extends AbstractApplication {
           teamRole = MMRole.TEAM_ADMIN;
         }
       } catch (IllegalArgumentException e) {
-        // ignore missing teamAdmin matching group 
+        // ignore missing teamAdmin matching group
       }
       LOG.debug("Extracted Mattermost information from IDP group: teamName={}, teamRole={}", teamName, teamRole);
       if (teamName == null) {

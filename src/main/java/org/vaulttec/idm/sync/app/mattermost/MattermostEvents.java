@@ -35,8 +35,13 @@ public abstract class MattermostEvents extends SyncEvents {
     return createEvent(USER_UNBLOCKED, Mattermost.APPLICATION_ID, "username=" + user.getUsername());
   }
 
-  public static AuditEvent userAddedToTeam(MMUser user, MMTeam team, MMRole role) {
+  public static AuditEvent userAddedToTeam(MMUser user, MMTeam team) {
     return createEvent(USER_ADDED, Mattermost.APPLICATION_ID, "username=" + user.getUsername(), "compositeType=team",
+        "compositeId=" + team.getId(), "compositeName=" + team.getName());
+  }
+
+  public static AuditEvent userRoleUpdatedInTeam(MMUser user, MMTeam team, MMRole role) {
+    return createEvent(USER_UPDATED, Mattermost.APPLICATION_ID, "username=" + user.getUsername(), "compositeType=team",
         "compositeId=" + team.getId(), "compositeName=" + team.getName(), "role=" + role);
   }
 

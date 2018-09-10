@@ -30,6 +30,7 @@ public abstract class SyncEvents {
   public static final String USER_BLOCKED = "USER_BLOCKED";
   public static final String USER_UNBLOCKED = "USER_UNBLOCKED";
   public static final String USER_ADDED = "USER_ADDED";
+  public static final String USER_UPDATED = "USER_UPDATED";
   public static final String USER_REMOVED = "USER_REMOVED";
   /** Generic term for the application-specific terms GitLab Group, Mattermost Team, JIRA Project, ... */
   public static final String COMPOSITE_CREATED = "COMPOSITE_CREATED";

@@ -20,6 +20,7 @@ package org.vaulttec.idm.sync.app.mattermost;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -102,9 +103,20 @@ public class MattermostClientIntegrationTest {
   public void testAddMemberToTeam() {
     MMTeam team = client.createTeam("test2", "test2 Team");
     assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test2");
-    MMUser user = client.createUser("x000043", "John", "Doo2", "john.doo2@acme.com", "gitlab", "42");
+    MMUser user = client.createUser("x000043", "John", "Doo2", "john.doo2@acme.com", "gitlab", "443");
     assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000043");
-    assertTrue(client.addMemberToTeam(team, user, null));
+    assertTrue(client.addMemberToTeam(team, user));
+  }
+
+  @Test
+  @Ignore
+  public void testUpdateTeamMemberRoles() {
+    MMTeam team = client.createTeam("test2", "test2 Team");
+    assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test2");
+    MMUser user = client.createUser("x000043", "John", "Doo2", "john.doo2@acme.com", "gitlab", "443");
+    assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000043");
+    assertTrue(client.addMemberToTeam(team, user));
+    assertTrue(client.updateTeamMemberRoles(team, user, Arrays.asList(MMRole.TEAM_ADMIN)));
   }
 
   @Test
@@ -114,7 +126,7 @@ public class MattermostClientIntegrationTest {
     assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test2");
     MMUser user = client.createUser("x000043", "John", "Doo2", "john.doo2@acme.com", "gitlab", "42");
     assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000043");
-    assertTrue(client.addMemberToTeam(team, user, null));
+    assertTrue(client.addMemberToTeam(team, user));
     assertTrue(client.removeMemberFromTeam(team, user));
   }
 
