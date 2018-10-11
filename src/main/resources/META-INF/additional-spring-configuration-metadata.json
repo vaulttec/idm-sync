@@ -83,5 +83,10 @@
     "name": "mattermost.personal-access-token",
     "type": "java.lang.String",
     "description": "Personal access token of user with admin permission in Mattermost"
+  },
+  {
+    "name": "sync.email-domain",
+    "type": "java.lang.String",
+    "description": "Default domain name used for users without email address"
   }
 ]}

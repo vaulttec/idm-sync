@@ -6,6 +6,7 @@ logging:
     org.vaulttec: info
 
 sync:
+  emailDomain: dekager.dekabank.intern
   rate: 3000
 
 keycloak:

@@ -28,8 +28,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "sync")
 public class SyncConfig {
+  private String emailDomain;
   private int auditEventRepositoryCapacity;
   private List<String> enabledApps = new ArrayList<>();
+
+  public String getEmailDomain() {
+    return emailDomain;
+  }
+
+  public void setEmailDomain(String emailDomain) {
+    this.emailDomain = emailDomain;
+  }
 
   public int getAuditEventRepositoryCapacity() {
     return auditEventRepositoryCapacity;

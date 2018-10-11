@@ -212,56 +212,6 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncCreateNewUserWithoutEmail() {
-    GLUser glUser = new GLUser();
-    glUser.setUsername("user1");
-    glUser.setName("User 1");
-    glUser.setEmail("user1" + GitLab.DUMMY_EMAIL_DOMAIN); // dummy email
-    glUser.setState(GLState.ACTIVE);
-
-    List<GLGroup> glGroups = new ArrayList<>();
-    GLGroup glGroup = new GLGroup();
-    glGroup.setPath("grp1");
-    glGroup.setName("grp1");
-    glGroups.add(glGroup);
-
-    when(client.getUsers(null)).thenReturn(new ArrayList<>());
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
-    when(client.createUser("user1", "User 1", "user1" + GitLab.DUMMY_EMAIL_DOMAIN, PROVIDER_NAME, EXTERNAL_UID))
-        .thenReturn(glUser);
-    when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
-
-    IdpUser idpUser = new IdpUser();
-    idpUser.setUsername("user1");
-    idpUser.setFirstName("User");
-    idpUser.setLastName("1");
-    idpUser.setEmail(null); // missing email
-    Map<String, List<String>> attributes = new HashMap<>();
-    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
-    idpUser.setAttributes(attributes);
-
-    List<IdpGroup> idpGroups = new ArrayList<>();
-    IdpGroup idpGroup = new IdpGroup();
-    idpGroup.setName("APP_GIT_grp1_Maintainer");
-    idpGroup.setPath("/APP_GIT_grp1_Maintainer");
-    idpGroup.addMember(idpUser);
-    idpGroups.add(idpGroup);
-
-    app.sync(idpGroups);
-
-    verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
-    verify(client, never()).createGroup("grp1", "grp1", null);
-    verify(client).createUser("user1", "User 1", "user1" + GitLab.DUMMY_EMAIL_DOMAIN, PROVIDER_NAME, EXTERNAL_UID);
-    verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
-    verify(client, never()).removeMemberFromGroup(glGroup, null);
-    verify(client, never()).blockUser(null);
-    verify(client, never()).unblockUser(null);
-
-    verify(eventRepository, times(2)).add(any(AuditEvent.class));
-  }
-
-  @Test
   public void testSyncUserWithoutGroup() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();

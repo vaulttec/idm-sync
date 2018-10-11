@@ -39,7 +39,6 @@ public class GitLab extends AbstractApplication {
 
   public static final String APPLICATION_ID = "gitlab";
   public static final String USER_ID_ATTRIBUTE = "GITLAB_USER_ID";
-  protected static final String DUMMY_EMAIL_DOMAIN = "@b.c";
 
   private final GitLabClient client;
   private final Set<String> excludedUsers;
@@ -288,12 +287,9 @@ public class GitLab extends AbstractApplication {
           String externUid = idpUser.getAttribute(providerUidAttribute);
           LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), externUid);
           glUser = new GLUser(idpUser);
-          String email = idpUser.getEmail();
-          if (!StringUtils.hasText(email)) {
-            email = idpUser.getUsername() + DUMMY_EMAIL_DOMAIN;
-            LOG.warn("IDP user '{}' has no email - using dummy email '{}'", idpUser.getUsername(), email);
-          }
-          glUser.setEmail(email);
+          glUser.setUsername(idpUser.getUsername());
+          glUser.setName(idpUser.getName());
+          glUser.setEmail(idpUser.getEmail());
           glUser.setPermission(permission);
           glUser.setProvider(providerName);
           glUser.setExternUid(externUid);

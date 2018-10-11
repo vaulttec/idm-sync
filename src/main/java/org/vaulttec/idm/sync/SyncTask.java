@@ -31,6 +31,7 @@ import org.vaulttec.idm.sync.app.Application;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.util.StringUtils;
 
 @Component
 public class SyncTask {
@@ -70,6 +71,7 @@ public class SyncTask {
           List<IdpGroup> groups = idp.getGroups(app.getGroupSearch());
           if (groups != null) {
             Map<String, IdpUser> users = retrieveMembersForGroups(groups);
+            addMissingEmail(users);
             app.sync(groups);
             updateModifiedUserAttributes(users);
           }
@@ -93,6 +95,14 @@ public class SyncTask {
       }
     }
     return users;
+  }
+
+  private void addMissingEmail(Map<String, IdpUser> users) {
+    for (IdpUser user : users.values()) {
+      if (!StringUtils.hasText(user.getEmail())) {
+        user.setEmail(user.getUsername() + "@" + syncConfig.getEmailDomain());
+      }
+    }
   }
 
   private void updateModifiedUserAttributes(Map<String, IdpUser> users) {

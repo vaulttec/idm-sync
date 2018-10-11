@@ -38,7 +38,6 @@ public class Mattermost extends AbstractApplication {
 
   public static final String APPLICATION_ID = "mattermost";
   public static final String USER_ID_ATTRIBUTE = "MATTERMOST_USER_ID";
-  protected static final String DUMMY_EMAIL_DOMAIN = "@b.c";
 
   private final MattermostClient client;
   private final Set<String> excludedUsers;
@@ -267,12 +266,7 @@ public class Mattermost extends AbstractApplication {
           mmUser.setUsername(idpUser.getUsername());
           mmUser.setFirstName(idpUser.getFirstName());
           mmUser.setLastName(idpUser.getLastName());
-          String email = idpUser.getEmail();
-          if (!StringUtils.hasText(email)) {
-            email = idpUser.getUsername() + DUMMY_EMAIL_DOMAIN;
-            LOG.warn("IDP user '{}' has no email - using dummy email '{}'", idpUser.getUsername(), email);
-          }
-          mmUser.setEmail(email);
+          mmUser.setEmail(idpUser.getEmail());
           mmUser.setAuthService(authService);
           mmUser.setAuthData(externUid);
           mmUsers.put(idpUser.getUsername(), mmUser);

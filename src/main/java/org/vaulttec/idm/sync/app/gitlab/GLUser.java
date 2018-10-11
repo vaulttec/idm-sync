@@ -46,8 +46,6 @@ public class GLUser {
 
   GLUser(IdpUser idpUser) {
     this.idpUser = idpUser;
-    this.username = idpUser.getUsername();
-    this.name = idpUser.getName();
   }
 
   public IdpUser getIdpUser() {

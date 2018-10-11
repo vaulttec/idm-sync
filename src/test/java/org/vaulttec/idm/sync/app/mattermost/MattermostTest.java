@@ -221,57 +221,6 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncCreateNewUserWithoutEmail() {
-    MMUser mmUser = new MMUser();
-    mmUser.setUsername("user1");
-    mmUser.setFirstName("User");
-    mmUser.setLastName("1");
-    mmUser.setEmail("user1" + Mattermost.DUMMY_EMAIL_DOMAIN); // dummy email
-    mmUser.setDeleteAt("0");
-
-    List<MMTeam> teams = new ArrayList<>();
-    MMTeam team = new MMTeam();
-    team.setName("team1");
-    teams.add(team);
-
-    when(client.getUsers()).thenReturn(new ArrayList<>());
-    when(client.getTeamsWithMembers()).thenReturn(teams);
-    when(client.createUser("user1", "User", "1", "user1" + Mattermost.DUMMY_EMAIL_DOMAIN, AUTH_SERVICE, AUTH_DATA))
-        .thenReturn(mmUser);
-    when(client.addMemberToTeam(team, mmUser)).thenReturn(true);
-    when(client.updateTeamMemberRoles(team, mmUser, Arrays.asList(MMRole.TEAM_ADMIN))).thenReturn(true);
-
-    IdpUser idpUser = new IdpUser();
-    idpUser.setUsername("user1");
-    idpUser.setFirstName("User");
-    idpUser.setLastName("1");
-    idpUser.setEmail(null); // missing email
-    Map<String, List<String>> attributes = new HashMap<>();
-    attributes.put(AUTH_UID_ATTRIBUTE, Arrays.asList(AUTH_DATA));
-    idpUser.setAttributes(attributes);
-
-    List<IdpGroup> idpGroups = new ArrayList<>();
-    IdpGroup idpGroup = new IdpGroup();
-    idpGroup.setName("APP_GIT_team1_Maintainer");
-    idpGroup.setPath("/APP_GIT_team1_Maintainer");
-    idpGroup.addMember(idpUser);
-    idpGroups.add(idpGroup);
-
-    app.sync(idpGroups);
-
-    verify(client).getUsers();
-    verify(client).getTeamsWithMembers();
-    verify(client, never()).createTeam("team1", "team1");
-    verify(client).createUser("user1", "User", "1", "user1" + Mattermost.DUMMY_EMAIL_DOMAIN, AUTH_SERVICE, AUTH_DATA);
-    verify(client).addMemberToTeam(team, mmUser);
-    verify(client).updateTeamMemberRoles(team, mmUser, Arrays.asList(MMRole.TEAM_ADMIN));
-    verify(client, never()).removeMemberFromTeam(team, null);
-    verify(client, never()).updateUserActiveStatus(null, false);
-
-    verify(eventRepository, times(3)).add(any(AuditEvent.class));
-  }
-
-  @Test
   public void testSyncUserWithoutGroup() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
