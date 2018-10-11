@@ -6,7 +6,7 @@ logging:
     org.vaulttec: info
 
 sync:
-  emailDomain: dekager.dekabank.intern
+  emailDomain: acme.com
   rate: 3000
 
 keycloak:

@@ -7,6 +7,9 @@ management:
         - info
         - auditevents
 
+sync:
+  emailDomain: ${EMAIL_DOMAIN}
+
 keycloak:
   serverUrl: ${KEYCLOAK_SERVER_URL}
   clientSecret: ${KEYCLOAK_CLIENT_SECRET}
