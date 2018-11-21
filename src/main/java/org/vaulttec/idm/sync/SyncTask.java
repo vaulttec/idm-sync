@@ -85,19 +85,20 @@ public class SyncTask {
   }
 
   private Map<String, IdpUser> retrieveMembersForGroups(List<IdpGroup> groups) {
+    Map<String, IdpUser> users = new HashMap<>();
     for (IdpGroup group : groups) {
       List<IdpUser> members = idp.getGroupMembers(group);
-      if (members != null) {
-        Map<String, IdpUser> users = new HashMap<>();
+      if (members == null) {
+        return null;
+      } else {
         for (IdpUser member : members) {
           member.addGroup(group);
           group.addMember(member);
           users.put(member.getId(), member);
         }
-        return users; 
       }
     }
-    return null;
+    return users;
   }
 
   private void addMissingEmail(Map<String, IdpUser> users) {
