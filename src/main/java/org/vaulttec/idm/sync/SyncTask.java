@@ -69,11 +69,13 @@ public class SyncTask {
         if (syncConfig.getEnabledApps().contains("*") || syncConfig.getEnabledApps().contains(app.getId())) {
           LOG.info("Syncing '{}'", app.getName());
           List<IdpGroup> groups = idp.getGroups(app.getGroupSearch());
-          if (groups != null) {
+          if (groups != null && !groups.isEmpty()) {
             Map<String, IdpUser> users = retrieveMembersForGroups(groups);
-            addMissingEmail(users);
-            app.sync(groups);
-            updateModifiedUserAttributes(users);
+            if (users != null) {
+              addMissingEmail(users);
+              app.sync(groups);
+              updateModifiedUserAttributes(users);
+            }
           }
         }
       }
@@ -83,18 +85,19 @@ public class SyncTask {
   }
 
   private Map<String, IdpUser> retrieveMembersForGroups(List<IdpGroup> groups) {
-    Map<String, IdpUser> users = new HashMap<>();
     for (IdpGroup group : groups) {
       List<IdpUser> members = idp.getGroupMembers(group);
       if (members != null) {
+        Map<String, IdpUser> users = new HashMap<>();
         for (IdpUser member : members) {
           member.addGroup(group);
           group.addMember(member);
           users.put(member.getId(), member);
         }
+        return users; 
       }
     }
-    return users;
+    return null;
   }
 
   private void addMissingEmail(Map<String, IdpUser> users) {
