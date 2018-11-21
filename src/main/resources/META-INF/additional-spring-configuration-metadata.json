@@ -75,6 +75,16 @@
     "description": "Personal access token of user with admin permission in GitLab"
   },
   {
+    "name": "gitlab.provider-name",
+    "type": "java.lang.String",
+    "description": "Name of GitLab external user provider, e.g. the ID of the LDAP server defined in <gitlab_rails['ldap_servers']>"
+  },
+  {
+    "name": "gitlab.provider-uid-attribute",
+    "type": "java.lang.String",
+    "description": "Name of UID attribute in GitLab external user provider, e.g. 'LDAP_ENTRY_DN'"
+  },
+  {
     "name": "mattermost.server-url",
     "type": "java.lang.String",
     "description": "A description for 'mattermost.server-url'"

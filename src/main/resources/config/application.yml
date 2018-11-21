@@ -42,8 +42,8 @@ apps:
         excludedUsers: root, ghost, gladmin
         removeProjectMembers: true
       provider:
-        name: ldapmain
-        uidAttribute: LDAP_ENTRY_DN
+        name: ${gitlab.providerName}
+        uidAttribute: ${gitlab.providerUidAttribute}
       perPage: 100
   - factory: org.vaulttec.idm.sync.app.mattermost.MattermostFactory
     config:

@@ -16,6 +16,8 @@ keycloak:
 gitlab:
   serverUrl: http://torstens-macbook-pro.local:8083
   personalAccessToken: d9FPuic1fFd-gzNvpmw4
+  providerName: ldapmain
+  providerUidAttribute: LDAP_ENTRY_DN
 
 mattermost:
   serverUrl: http://torstens-macbook-pro.local:8084

@@ -17,6 +17,8 @@ keycloak:
 gitlab:
   serverUrl: ${GITLAB_SERVER_URL}
   personalAccessToken: ${GITLAB_PERSONAL_ACCESS_TOKEN}
+  providerName: ${GITLAB_PROVIDER_NAME}
+  providerUidAttribute: ${GITLAB_PROVIDER_UID_ATTRIBUTE}
 
 mattermost:
   serverUrl: ${MATTERMOST_SERVER_URL}
