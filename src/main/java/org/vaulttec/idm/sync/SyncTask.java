@@ -103,7 +103,7 @@ public class SyncTask {
 
   private void addMissingEmail(Map<String, IdpUser> users) {
     for (IdpUser user : users.values()) {
-      if (!StringUtils.hasText(user.getEmail())) {
+      if (!StringUtils.hasText(user.getEmail()) && StringUtils.hasText(syncConfig.getEmailDomain())) {
         user.setEmail(user.getUsername() + "@" + syncConfig.getEmailDomain());
       }
     }

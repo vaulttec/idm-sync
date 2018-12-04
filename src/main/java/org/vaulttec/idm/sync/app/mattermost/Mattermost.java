@@ -260,19 +260,24 @@ public class Mattermost extends AbstractApplication {
       for (IdpUser idpUser : idpGroup.getMembers()) {
         MMUser mmUser = mmUsers.get(idpUser.getUsername());
         if (mmUser == null) {
-          String externUid = idpUser.getAttribute(authUidAttribute);
-          LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), externUid);
-          mmUser = new MMUser(idpUser);
-          mmUser.setUsername(idpUser.getUsername());
-          mmUser.setFirstName(idpUser.getFirstName());
-          mmUser.setLastName(idpUser.getLastName());
-          mmUser.setEmail(idpUser.getEmail());
-          mmUser.setAuthService(authService);
-          mmUser.setAuthData(externUid);
-          mmUsers.put(idpUser.getUsername(), mmUser);
+          if (!StringUtils.hasText(idpUser.getEmail())) {
+            LOG.warn("IDP user '{}' has no email address - skipping", idpUser.getUsername());
+          } else {
+            LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), idpUser.getAttribute(authUidAttribute));
+            mmUser = new MMUser(idpUser);
+            mmUser.setUsername(idpUser.getUsername());
+            mmUser.setFirstName(idpUser.getFirstName());
+            mmUser.setLastName(idpUser.getLastName());
+            mmUser.setEmail(idpUser.getEmail());
+            mmUser.setAuthService(authService);
+            mmUser.setAuthData(idpUser.getAttribute(authUidAttribute));
+            mmUsers.put(idpUser.getUsername(), mmUser);
+          }
         }
-        mmUser.addTeam(mmTeam);
-        mmTeam.addMember(mmUser, teamRole);
+        if (mmUser != null) {
+          mmUser.addTeam(mmTeam);
+          mmTeam.addMember(mmUser, teamRole);
+        }
       }
     }
   }

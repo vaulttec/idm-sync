@@ -289,7 +289,12 @@ public class GitLab extends AbstractApplication {
           glUser = new GLUser(idpUser);
           glUser.setUsername(idpUser.getUsername());
           glUser.setName(idpUser.getName());
-          glUser.setEmail(idpUser.getEmail());
+          String email = idpUser.getEmail();
+          if (!StringUtils.hasText(email)) {
+            email = "temp-email-for-oauth-" + idpUser.getUsername() + "@gitlab.localhost";
+            LOG.warn("IDP user '{}' has no email address - using dummy email '{}'", idpUser.getUsername(), email);
+          }
+          glUser.setEmail(email);
           glUser.setPermission(permission);
           glUser.setProvider(providerName);
           glUser.setExternUid(externUid);
