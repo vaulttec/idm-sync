@@ -107,6 +107,8 @@ public class Mattermost extends AbstractApplication {
           if (StringUtils.hasText(targetUser.getAuthService()) && !StringUtils.hasText(targetUser.getAuthData())) {
             LOG.warn("New user '{}' not created - missing required authentication data for authentication service '{}'",
                 targetUser.getUsername(), targetUser.getAuthService());
+          } else if (!StringUtils.hasText(targetUser.getEmail())) {
+            LOG.warn("New user '{}' not created - missing required email address", targetUser.getUsername());
           } else {
             MMUser newUser = client.createUser(targetUser.getUsername(), targetUser.getFirstName(),
                 targetUser.getLastName(), targetUser.getEmail(), targetUser.getAuthService(), targetUser.getAuthData());
@@ -260,24 +262,18 @@ public class Mattermost extends AbstractApplication {
       for (IdpUser idpUser : idpGroup.getMembers()) {
         MMUser mmUser = mmUsers.get(idpUser.getUsername());
         if (mmUser == null) {
-          if (!StringUtils.hasText(idpUser.getEmail())) {
-            LOG.warn("IDP user '{}' has no email address - skipping", idpUser.getUsername());
-          } else {
-            LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), idpUser.getAttribute(authUidAttribute));
-            mmUser = new MMUser(idpUser);
-            mmUser.setUsername(idpUser.getUsername());
-            mmUser.setFirstName(idpUser.getFirstName());
-            mmUser.setLastName(idpUser.getLastName());
-            mmUser.setEmail(idpUser.getEmail());
-            mmUser.setAuthService(authService);
-            mmUser.setAuthData(idpUser.getAttribute(authUidAttribute));
-            mmUsers.put(idpUser.getUsername(), mmUser);
-          }
+          LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), idpUser.getAttribute(authUidAttribute));
+          mmUser = new MMUser(idpUser);
+          mmUser.setUsername(idpUser.getUsername());
+          mmUser.setFirstName(idpUser.getFirstName());
+          mmUser.setLastName(idpUser.getLastName());
+          mmUser.setEmail(idpUser.getEmail());
+          mmUser.setAuthService(authService);
+          mmUser.setAuthData(idpUser.getAttribute(authUidAttribute));
+          mmUsers.put(idpUser.getUsername(), mmUser);
         }
-        if (mmUser != null) {
-          mmUser.addTeam(mmTeam);
-          mmTeam.addMember(mmUser, teamRole);
-        }
+        mmUser.addTeam(mmTeam);
+        mmTeam.addMember(mmUser, teamRole);
       }
     }
   }

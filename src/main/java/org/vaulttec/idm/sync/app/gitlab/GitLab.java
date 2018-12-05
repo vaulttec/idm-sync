@@ -110,6 +110,8 @@ public class GitLab extends AbstractApplication {
           if (StringUtils.hasText(targetUser.getProvider()) && !StringUtils.hasText(targetUser.getExternUid())) {
             LOG.warn("New user '{}' not created - missing required external user ID for provider '{}'",
                 targetUser.getUsername(), targetUser.getProvider());
+          } else if (!StringUtils.hasText(targetUser.getEmail())) {
+            LOG.warn("New user '{}' not created - missing required email address", targetUser.getUsername());
           } else {
             GLUser newUser = client.createUser(targetUser.getUsername(), targetUser.getName(), targetUser.getEmail(),
                 targetUser.getProvider(), targetUser.getExternUid());
@@ -289,12 +291,7 @@ public class GitLab extends AbstractApplication {
           glUser = new GLUser(idpUser);
           glUser.setUsername(idpUser.getUsername());
           glUser.setName(idpUser.getName());
-          String email = idpUser.getEmail();
-          if (!StringUtils.hasText(email)) {
-            email = "temp-email-for-oauth-" + idpUser.getUsername() + "@gitlab.localhost";
-            LOG.warn("IDP user '{}' has no email address - using dummy email '{}'", idpUser.getUsername(), email);
-          }
-          glUser.setEmail(email);
+          glUser.setEmail(idpUser.getEmail());
           glUser.setPermission(permission);
           glUser.setProvider(providerName);
           glUser.setExternUid(externUid);
