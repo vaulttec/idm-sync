@@ -62,7 +62,7 @@ public class MattermostClient extends AbstractRestClient {
       } else {
         List<MMUser> users = new ArrayList<>(response.getBody());
         do {
-          page += perPage;
+          page++;
           uriVariables.put("page", Integer.toString(page));
           response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS,
               uriVariables);
@@ -123,7 +123,7 @@ public class MattermostClient extends AbstractRestClient {
       } else {
         List<MMTeam> teams = new ArrayList<>(response.getBody());
         do {
-          page += perPage;
+          page++;
           uriVariables.put("page", Integer.toString(page));
           response = restTemplate.exchange(groupsUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_TEAMS,
               uriVariables);
@@ -154,7 +154,7 @@ public class MattermostClient extends AbstractRestClient {
       } else {
         List<MMTeamMember> teamMembers = new ArrayList<>(response.getBody());
         do {
-          page += perPage;
+          page++;
           uriVariables.put("page", Integer.toString(page));
           response = restTemplate.exchange(teamMembersUrl, HttpMethod.GET, authenticationEntity,
               RESPONSE_TYPE_TEAM_MEMBERS, uriVariables);
