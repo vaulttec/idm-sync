@@ -17,13 +17,16 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.vaulttec.idm.sync.idp.IdpUser;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GLUser {
@@ -38,6 +41,7 @@ public class GLUser {
   private GLPermission permission;
   private String provider;
   private String externUid;
+  private List<GLIdentity> identities;
   private Map<String, GLGroup> groups = new HashMap<>();
 
   GLUser() {
@@ -114,6 +118,25 @@ public class GLUser {
 
   public void setExternUid(String externUid) {
     this.externUid = externUid;
+  }
+
+  public List<GLIdentity> getIdentities() {
+    return identities;
+  }
+
+  @JsonSetter("identities")
+  public void setIdentities(List<GLIdentity> identities) {
+    this.identities = identities;
+  }
+
+  public void addIdentity(String provider, String externUid) {
+    if (identities == null) {
+      identities = new ArrayList<>();
+    }
+    GLIdentity identity = new GLIdentity();
+    identity.setProvider(provider);
+    identity.setExternUid(externUid);
+    identities.add(identity);
   }
 
   public Map<String, GLGroup> getGroups() {

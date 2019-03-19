@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,6 +86,29 @@ public class GitLab extends AbstractApplication {
     List<GLUser> sourceUsers = client.getUsers(null);
     if (sourceUsers != null) {
       Map<String, GLUser> syncedUsers = new HashMap<>();
+
+      // Delete users with temporary email created during first SSO access
+      List<GLUser> deletedUsers = new ArrayList<>();
+      for (GLUser sourceUser : sourceUsers) {
+        if (sourceUser.getEmail().startsWith("temp-email-for-oauth-")
+            && sourceUser.getEmail().endsWith("@gitlab.localhost")) {
+          client.deleteUser(sourceUser, true);
+          deletedUsers.add(sourceUser);
+        }
+      }
+      sourceUsers.removeAll(deletedUsers);
+
+      // Merge identities of deleted user with the corresponding primary user
+      for (GLUser deletedUser : deletedUsers) {
+        String deletedUsername = deletedUser.getUsername().substring(0, deletedUser.getUsername().length() - 1);
+        for (GLUser sourceUser : sourceUsers) {
+          if (sourceUser.getUsername().equals(deletedUsername)) {
+            for (GLIdentity deletedIdentity : deletedUser.getIdentities()) {
+              client.addIdentityToUser(sourceUser, deletedIdentity.getProvider(), deletedIdentity.getExternUid());
+            }
+          }
+        }
+      }
 
       // Unblock existing users associated with GitLab group now
       for (GLUser sourceUser : sourceUsers) {

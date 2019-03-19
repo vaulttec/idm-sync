@@ -55,7 +55,7 @@ public class GitLabClient extends AbstractRestClient {
     String usersUrl = serverUrl + "/api/v4/users?page=1&per_page={perPage}";
     Map<String, String> uriVariables = createUriVariables("perPage", perPageAsString());
     if (StringUtils.hasText(search)) {
-      usersUrl += "?search={search}";
+      usersUrl += "&search={search}";
       uriVariables.put("search", search);
     }
     try {
@@ -254,10 +254,10 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Blocking user '{}' ({})", user.getUsername(), user.getId());
-    String userUrl = serverUrl + "/api/v4/users/{id}/block";
+    String usersUrl = serverUrl + "/api/v4/users/{id}/block";
     Map<String, String> uriVariables = createUriVariables("id", user.getId());
     try {
-      restTemplate.exchange(userUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
+      restTemplate.exchange(usersUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
       return true;
     } catch (RestClientException e) {
       LOG.error("Blocking user failed", e);
@@ -270,14 +270,49 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Unblocking user '{}' ({})", user.getUsername(), user.getId());
-    String userUrl = serverUrl + "/api/v4/users/{id}/unblock";
+    String usersUrl = serverUrl + "/api/v4/users/{id}/unblock";
     Map<String, String> uriVariables = createUriVariables("id", user.getId());
     try {
-      restTemplate.exchange(userUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
+      restTemplate.exchange(usersUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
       user.setState(GLState.ACTIVE);
       return true;
     } catch (RestClientException e) {
       LOG.error("Unblocking user failed", e);
+    }
+    return false;
+  }
+
+  public boolean addIdentityToUser(GLUser user, String provider, String externUid) {
+    LOG.info("Adding identity to user '{}' ({}): provider={}, externUid={}", user.getUsername(), user.getId(), provider,
+        externUid);
+    if (!StringUtils.hasText(provider) || !StringUtils.hasText(externUid)) {
+      throw new IllegalStateException("provider and externUid required");
+    }
+    String usersUrl = serverUrl + "/api/v4/users/{id}?provider={provider}&extern_uid={externUid}";
+    Map<String, String> uriVariables = createUriVariables("id", user.getId(), "provider", provider, "externUid",
+        externUid.toLowerCase());
+    try {
+      restTemplate.exchange(usersUrl, HttpMethod.PUT, authenticationEntity, Void.class, uriVariables);
+      user.addIdentity(provider, externUid);
+      return true;
+    } catch (RestClientException e) {
+      LOG.error("Adding identity to user failed", e);
+    }
+    return false;
+  }
+
+  public boolean deleteUser(GLUser user, boolean hard) {
+    if (user == null || !StringUtils.hasText(user.getId())) {
+      throw new IllegalStateException("GitLab user with valid ID required");
+    }
+    LOG.info("Deleting user '{}' ({})", user.getUsername(), user.getId());
+    String usersUrl = serverUrl + "/api/v4/users/{id}?hard_delete={hard}";
+    Map<String, String> uriVariables = createUriVariables("id", user.getId(), "hard", Boolean.toString(hard));
+    try {
+      restTemplate.exchange(usersUrl, HttpMethod.DELETE, authenticationEntity, Void.class, uriVariables);
+      return true;
+    } catch (RestClientException e) {
+      LOG.error("Deleting user failed", e);
     }
     return false;
   }

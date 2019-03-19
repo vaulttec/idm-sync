@@ -31,8 +31,8 @@ public final class GitLabBuilder {
   private String providerUidAttribute;
 
   public GitLabBuilder(GitLabClient client, AuditEventRepository eventRepository) {
-    this.eventRepository = eventRepository;
     this.client = client;
+    this.eventRepository = eventRepository;
   }
 
   public GitLabBuilder groupSearch(String groupSearch) {

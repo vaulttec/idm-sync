@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -116,9 +115,28 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testCreateUser() {
+  public void testCreateAndDeleteUser() {
     GLUser user = client.createUser("x000042", "John Doo", "john.doo@acme.com", null, null);
     assertThat(user).isNotNull();
+    assertThat(client.getUsers("x000042")).isNotNull();
+    assertThat(client.deleteUser(user, true)).isTrue();
+    List<GLUser> users = client.getUsers("x000042");
+    assertThat(user).isNotNull();
+    assertThat(users.size()).isEqualTo(1);
+    assertThat(users.get(0).getState()).isEqualTo(GLState.BLOCKED);
+  }
+
+  @Test
+  public void testAddIdentityToUser() {
+    GLUser user = client.createUser("x000042", "John Doo", "john.doo@acme.com", "foo1", "bar1");
+    assertThat(user).isNotNull();
+    assertThat(client.addIdentityToUser(user, "foo2", "bar2")).isTrue();
+    List<GLUser> users = client.getUsers("x000042");
+    assertThat(users).isNotNull().hasSize(1);
+    List<GLIdentity> identities = users.get(0).getIdentities();
+    assertThat(identities).isNotNull().hasSize(2);
+    assertThat(identities.get(1).getProvider()).startsWith("foo");
+    assertThat(identities.get(1).getExternUid()).startsWith("bar");
+    assertThat(client.deleteUser(user, true)).isTrue();
   }
 }
