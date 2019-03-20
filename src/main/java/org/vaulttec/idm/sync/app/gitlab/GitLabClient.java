@@ -321,7 +321,7 @@ public class GitLabClient extends AbstractRestClient {
     if (group == null || !StringUtils.hasText(group.getId())) {
       throw new IllegalStateException("GitLab group with valid ID required");
     }
-    LOG.debug("Retrieving projects from group: search={}", search);
+    LOG.debug("Retrieving projects from group '{}': search={}", group.getName(), search);
     String projectsUrl = serverUrl + "/api/v4/groups/{groupId}/projects?page=1&per_page={perPage}";
     Map<String, String> uriVariables = createUriVariables("groupId", group.getId(), "perPage", perPageAsString());
     if (StringUtils.hasText(search)) {

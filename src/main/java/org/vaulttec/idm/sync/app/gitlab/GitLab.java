@@ -100,7 +100,11 @@ public class GitLab extends AbstractApplication {
 
       // Merge identities of deleted user with the corresponding primary user
       for (GLUser deletedUser : deletedUsers) {
+
+        // Strip the trailing number from the user name
         String deletedUsername = deletedUser.getUsername().substring(0, deletedUser.getUsername().length() - 1);
+
+        // Search for the primary user
         for (GLUser sourceUser : sourceUsers) {
           if (sourceUser.getUsername().equals(deletedUsername)) {
             for (GLIdentity deletedIdentity : deletedUser.getIdentities()) {
