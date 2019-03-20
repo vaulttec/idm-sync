@@ -92,9 +92,12 @@ public class SyncTask {
         return null;
       } else {
         for (IdpUser member : members) {
-          member.addGroup(group);
-          group.addMember(member);
-          users.put(member.getId(), member);
+          if (!users.containsKey(member.getId())) {
+            users.put(member.getId(), member);
+          }
+          IdpUser user = users.get(member.getId());
+          user.addGroup(group);
+          group.addMember(user);
         }
       }
     }
