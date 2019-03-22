@@ -141,7 +141,7 @@ public class Mattermost extends AbstractApplication {
 
   /**
    * Make sure that the value of the IdP's user attribute "MATTERMOST_USER_ID"
-   * with given Mattermost user's ID.
+   * matches the given Mattermost user's ID.
    */
   protected void updateUserIdAttribute(IdpUser idpUser, MMUser mmUser) {
     String userId = idpUser.getAttribute(USER_ID_ATTRIBUTE);

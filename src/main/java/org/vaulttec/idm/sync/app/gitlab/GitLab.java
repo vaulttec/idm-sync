@@ -170,8 +170,8 @@ public class GitLab extends AbstractApplication {
   }
 
   /**
-   * Make sure that the value of the IdP's user attribute "GITLAB_USER_ID" with
-   * given GitLab user's ID.
+   * Make sure that the value of the IdP's user attribute "GITLAB_USER_ID" matches
+   * the given GitLab user's ID.
    */
   protected void updateUserIdAttribute(IdpUser idpUser, GLUser glUser) {
     String userId = idpUser.getAttribute(USER_ID_ATTRIBUTE);
