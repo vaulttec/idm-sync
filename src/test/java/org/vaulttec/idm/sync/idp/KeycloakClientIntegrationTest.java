@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,8 @@ import org.vaulttec.idm.sync.idp.keycloak.KeycloakClientBuilder;
 public class KeycloakClientIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(KeycloakClientIntegrationTest.class);
+
+  private static final String USER_SEARCH = "b0123";
 
   @Autowired
   private Environment env;
@@ -81,30 +84,57 @@ public class KeycloakClientIntegrationTest {
   @Test
   @Ignore
   public void testUpdateUserAttributes() {
-    List<IdpUser> users = client.getUsers("b0123");
+    List<IdpUser> users = client.getUsers(USER_SEARCH);
     assertThat(users).isNotNull().isNotEmpty();
 
     Map<String, List<String>> attributes = new HashMap<>();
     attributes.put("testAttribute", Arrays.asList("testValue"));
     assertTrue(client.updateUserAttributes(users.get(0), attributes));
 
-    users = client.getUsers("b0123");
+    users = client.getUsers(USER_SEARCH);
     assertThat(users).isNotNull().isNotEmpty();
     assertThat(users.get(0).getAttribute("testAttribute")).isEqualTo("testValue");
 
     attributes.put("testAttribute", Arrays.asList("testValue2"));
     assertTrue(client.updateUserAttributes(users.get(0), attributes));
 
-    users = client.getUsers("b0123");
+    users = client.getUsers(USER_SEARCH);
     assertThat(users).isNotNull().isNotEmpty();
     assertThat(users.get(0).getAttribute("testAttribute")).isEqualTo("testValue2");
 
     attributes.put("testAttribute", null);
     assertTrue(client.updateUserAttributes(users.get(0), attributes));
 
-    users = client.getUsers("b0123");
+    users = client.getUsers(USER_SEARCH);
     assertThat(users).isNotNull().isNotEmpty();
     assertThat(users.get(0).getAttribute("testAttribute")).isNull();
+  }
+
+  @Test
+  @Ignore
+  public void testUpdateRequiredActions() {
+    List<IdpUser> users = client.getUsers(USER_SEARCH);
+    assertThat(users).isNotNull().isNotEmpty();
+    List<String> savedRequiredActions = users.get(0).getRequiredActions();
+
+    List<String> requiredActions = Arrays.asList("CONFIGURE_TOTP");
+    assertTrue(client.updateRequiredActions(users.get(0), requiredActions));
+
+    users = client.getUsers(USER_SEARCH);
+    assertThat(users).isNotNull().isNotEmpty();
+    assertThat(users.get(0).getRequiredActions()).isEqualTo(requiredActions);
+
+    assertTrue(client.updateRequiredActions(users.get(0), Collections.emptyList()));
+
+    users = client.getUsers(USER_SEARCH);
+    assertThat(users).isNotNull().isNotEmpty();
+    assertThat(users.get(0).getRequiredActions()).isEqualTo(Collections.emptyList());
+
+    assertTrue(client.updateRequiredActions(users.get(0), savedRequiredActions));
+
+    users = client.getUsers(USER_SEARCH);
+    assertThat(users).isNotNull().isNotEmpty();
+    assertThat(users.get(0).getRequiredActions()).isEqualTo(savedRequiredActions);
   }
 
   @Test

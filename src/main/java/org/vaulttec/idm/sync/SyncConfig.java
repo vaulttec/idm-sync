@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "sync")
 public class SyncConfig {
   private String emailDomain;
+  private boolean removeRequiredActions;
   private int auditEventRepositoryCapacity;
   private List<String> enabledApps = new ArrayList<>();
 
@@ -38,6 +39,14 @@ public class SyncConfig {
 
   public void setEmailDomain(String emailDomain) {
     this.emailDomain = emailDomain;
+  }
+
+  public boolean isRemoveRequiredActions() {
+    return removeRequiredActions;
+  }
+
+  public void setRemoveRequiredActions(boolean removeRequiredActions) {
+    this.removeRequiredActions = removeRequiredActions;
   }
 
   public int getAuditEventRepositoryCapacity() {

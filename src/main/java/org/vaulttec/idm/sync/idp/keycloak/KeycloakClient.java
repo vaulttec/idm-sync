@@ -147,6 +147,25 @@ public class KeycloakClient extends AbstractRestClient {
     return false;
   }
 
+  public boolean updateRequiredActions(IdpUser user, List<String> requiredActions) {
+    if (authenticationEntity == null) {
+      throw new IllegalStateException("Authentication required");
+    }
+    LOG.debug("Updating user ({}) required actions: requiredActions={}", user.getUsername(), requiredActions);
+    String userUrl = serverUrl + "/admin/realms/{realm}/users/{userId}";
+    Map<String, String> uriVariables = createUriVariables("realm", realm, "userId", user.getId());
+    try {
+      JsonNode requiredActionsNode = mapper.valueToTree(requiredActions);
+      HttpEntity<String> entity = new HttpEntity<String>(
+          "{\"requiredActions\": " + mapper.writeValueAsString(requiredActionsNode) + "}", authenticationEntity.getHeaders());
+      restTemplate.exchange(userUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
+      return true;
+    } catch (RestClientException | IOException e) {
+      LOG.error("Updating user required actions failed", e);
+    }
+    return false;
+  }
+
   public List<IdpGroup> getGroups(String search) {
     if (authenticationEntity == null) {
       throw new IllegalStateException("Authentication required");

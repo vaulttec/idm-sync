@@ -73,6 +73,7 @@ public class SyncTask {
             Map<String, IdpUser> users = retrieveMembersForGroups(groups);
             if (users != null) {
               addMissingEmail(users);
+              removeRequiredActions(users);
               app.sync(groups);
               updateModifiedUserAttributes(users);
             }
@@ -108,6 +109,14 @@ public class SyncTask {
     for (IdpUser user : users.values()) {
       if (!StringUtils.hasText(user.getEmail()) && StringUtils.hasText(syncConfig.getEmailDomain())) {
         user.setEmail(user.getUsername() + "@" + syncConfig.getEmailDomain());
+      }
+    }
+  }
+
+  private void removeRequiredActions(Map<String, IdpUser> users) {
+    for (IdpUser user : users.values()) {
+      if (!user.getRequiredActions().isEmpty() && syncConfig.isRemoveRequiredActions()) {
+        idp.removeRequiredActions(user);
       }
     }
   }

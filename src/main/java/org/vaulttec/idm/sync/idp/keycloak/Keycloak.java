@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.idp.keycloak;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +56,11 @@ public class Keycloak implements IdentityProvider {
   @Override
   public boolean updateUserAttributes(IdpUser user, Map<String, List<String>> attributes) {
     return client.updateUserAttributes(user, attributes);
+  }
+
+  @Override
+  public boolean removeRequiredActions(IdpUser user) {
+    return client.updateRequiredActions(user, Collections.emptyList());
   }
 
   @Override

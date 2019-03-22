@@ -15,6 +15,7 @@ proxy:
 
 sync:
   emailDomain: acme.com
+  removeRequiredActions: true
   rate: 600000  # 10 min
   auditEventRepositoryCapacity: 1000
   enabledApps:

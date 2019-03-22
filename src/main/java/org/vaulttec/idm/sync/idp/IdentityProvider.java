@@ -32,6 +32,8 @@ public interface IdentityProvider {
 
   boolean updateUserAttributes(IdpUser user, Map<String, List<String>> attributes);
 
+  boolean removeRequiredActions(IdpUser user);
+
   List<IdpGroup> getGroups(String search);
 
   boolean updateGroupAttributes(IdpGroup group, Map<String, List<String>> attributes);
