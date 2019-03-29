@@ -5,6 +5,8 @@ spring:
     banner-mode: "off"
 
 logging:
+  file:
+    max-history: 10
   level:
     org.springframework: info
     org.vaulttec: info
