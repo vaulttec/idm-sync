@@ -65,6 +65,41 @@ public class KeycloakClient extends AbstractRestClient {
     this.mapper = new ObjectMapper();
   }
 
+  @Override
+  protected String getApiPath() {
+    return "/auth";
+  }
+
+  @Override
+  protected <T> List<T> makeReadListApiCall(String apiCall, ParameterizedTypeReference<List<T>> typeReference,
+      Map<String, String> uriVariables) {
+    int first = 0;
+    String url = getApiUrl(apiCall + (apiCall.contains("?") ? "&" : "?") + "first={first}&max={perPage}");
+    uriVariables.put("first", Integer.toString(first));
+    uriVariables.put("perPage", perPageAsString());
+    try {
+      List<T> entities;
+      ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
+          uriVariables);
+      if (response.getBody().size() < perPage) {
+        entities = response.getBody();
+      } else {
+        entities = new ArrayList<>(response.getBody());
+        do {
+          first += perPage;
+          uriVariables.put("first", Integer.toString(first));
+          response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference, uriVariables);
+          entities.addAll(response.getBody());
+        } while (response.getBody().size() == perPage);
+        return entities;
+      }
+      return entities;
+    } catch (RestClientException e) {
+      LOG.error("API call {} '{}' {} failed", "GET", url, uriVariables, e);
+    }
+    return null;
+  }
+
   /**
    * Authenticate with Keycloak via <code>confidential</code> <a href=
    * "https://www.keycloak.org/docs/latest/server_admin/index.html#oidc-clients">OpenID
@@ -74,20 +109,18 @@ public class KeycloakClient extends AbstractRestClient {
    */
   public boolean authenticate() {
     LOG.info("Authenticating");
-    String loginUrl = serverUrl + "/realms/{realm}/protocol/openid-connect/token";
+    String apiCall = "/realms/{realm}/protocol/openid-connect/token";
     Map<String, String> uriVariables = createUriVariables("realm", realm);
-    try {
-      ObjectNode response = restTemplate.postForObject(loginUrl, loginEntity, ObjectNode.class, uriVariables);
-      LOG.debug("response={}", response);
-      if (response.has("access_token")) {
-        String authToken = response.get("access_token").asText();
+    ObjectNode node = makeWriteApiCall(apiCall, loginEntity, ObjectNode.class, uriVariables);
+    if (node != null) {
+      LOG.debug("response={}", node);
+      if (node.has("access_token")) {
+        String authToken = node.get("access_token").asText();
         prepareAuthenticationEntity("Authorization", "Bearer " + authToken);
         return true;
       } else {
         LOG.error("No 'access_token' property in JSON response");
       }
-    } catch (RestClientException e) {
-      LOG.error("Authentication failed", e);
     }
     return false;
   }
@@ -97,34 +130,13 @@ public class KeycloakClient extends AbstractRestClient {
       throw new IllegalStateException("Authentication required");
     }
     LOG.debug("Retrieving users: search={}", search);
-    int first = 0;
-    String usersUrl = serverUrl + "/admin/realms/{realm}/users?first={first}&max={perPage}";
-    Map<String, String> uriVariables = createUriVariables("realm", realm, "first", Integer.toString(first), "perPage",
-        perPageAsString());
+    String apiCall = "/admin/realms/{realm}/users";
+    Map<String, String> uriVariables = createUriVariables("realm", realm);
     if (StringUtils.hasText(search)) {
-      usersUrl += "&search={search}";
+      apiCall += "?search={search}";
       uriVariables.put("search", search);
     }
-    try {
-      ResponseEntity<List<IdpUser>> response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity,
-          RESPONSE_TYPE_USERS, uriVariables);
-      if (response.getBody().size() < perPage) {
-        return response.getBody();
-      } else {
-        List<IdpUser> groups = new ArrayList<>(response.getBody());
-        do {
-          first += perPage;
-          uriVariables.put("first", Integer.toString(first));
-          response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS,
-              uriVariables);
-          groups.addAll(response.getBody());
-        } while (response.getBody().size() == perPage);
-        return groups;
-      }
-    } catch (RestClientException e) {
-      LOG.error("Retrieving users failed", e);
-    }
-    return null;
+    return makeReadApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
   public boolean updateUserAttributes(IdpUser user, Map<String, List<String>> attributes) {
@@ -132,17 +144,16 @@ public class KeycloakClient extends AbstractRestClient {
       throw new IllegalStateException("Authentication required");
     }
     LOG.debug("Updating user ({}) attributes: attributes={}", user.getUsername(), attributes);
-    String userUrl = serverUrl + "/admin/realms/{realm}/users/{userId}";
+    String apiCall = "/admin/realms/{realm}/users/{userId}";
     Map<String, String> uriVariables = createUriVariables("realm", realm, "userId", user.getId());
     updateMultiValueMap(user.getAttributes(), attributes);
     try {
       JsonNode userAttributesNode = mapper.valueToTree(user.getAttributes());
       HttpEntity<String> entity = new HttpEntity<String>(
           "{\"attributes\": " + mapper.writeValueAsString(userAttributesNode) + "}", authenticationEntity.getHeaders());
-      restTemplate.exchange(userUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException | IOException e) {
-      LOG.error("Updating user attribues failed", e);
+      return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
+    } catch (IOException e) {
+      LOG.error("Invalid user attribues", e);
     }
     return false;
   }
@@ -152,16 +163,16 @@ public class KeycloakClient extends AbstractRestClient {
       throw new IllegalStateException("Authentication required");
     }
     LOG.debug("Updating user ({}) required actions: requiredActions={}", user.getUsername(), requiredActions);
-    String userUrl = serverUrl + "/admin/realms/{realm}/users/{userId}";
+    String apiCall = "/admin/realms/{realm}/users/{userId}";
     Map<String, String> uriVariables = createUriVariables("realm", realm, "userId", user.getId());
     try {
       JsonNode requiredActionsNode = mapper.valueToTree(requiredActions);
       HttpEntity<String> entity = new HttpEntity<String>(
-          "{\"requiredActions\": " + mapper.writeValueAsString(requiredActionsNode) + "}", authenticationEntity.getHeaders());
-      restTemplate.exchange(userUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException | IOException e) {
-      LOG.error("Updating user required actions failed", e);
+          "{\"requiredActions\": " + mapper.writeValueAsString(requiredActionsNode) + "}",
+          authenticationEntity.getHeaders());
+      return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
+    } catch (IOException e) {
+      LOG.error("Invalid required actions", e);
     }
     return false;
   }
@@ -171,34 +182,13 @@ public class KeycloakClient extends AbstractRestClient {
       throw new IllegalStateException("Authentication required");
     }
     LOG.debug("Retrieving groups: search={}", search);
-    int first = 0;
-    String groupsUrl = serverUrl + "/admin/realms/{realm}/groups?first={first}&max={perPage}";
-    Map<String, String> uriVariables = createUriVariables("realm", realm, "first", Integer.toString(first), "perPage",
-        perPageAsString());
+    String apiCall = "/admin/realms/{realm}/groups";
+    Map<String, String> uriVariables = createUriVariables("realm", realm);
     if (StringUtils.hasText(search)) {
-      groupsUrl += "&search={search}";
+      apiCall += "?search={search}";
       uriVariables.put("search", search);
     }
-    try {
-      ResponseEntity<List<IdpGroup>> response = restTemplate.exchange(groupsUrl, HttpMethod.GET, authenticationEntity,
-          RESPONSE_TYPE_GROUPS, uriVariables);
-      if (response.getBody().size() < perPage) {
-        return response.getBody();
-      } else {
-        List<IdpGroup> groups = new ArrayList<>(response.getBody());
-        do {
-          first += perPage;
-          uriVariables.put("first", Integer.toString(first));
-          response = restTemplate.exchange(groupsUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_GROUPS,
-              uriVariables);
-          groups.addAll(response.getBody());
-        } while (response.getBody().size() == perPage);
-        return groups;
-      }
-    } catch (RestClientException e) {
-      LOG.error("Retrieving groups failed", e);
-    }
-    return null;
+    return makeReadApiCall(apiCall, RESPONSE_TYPE_GROUPS, uriVariables);
   }
 
   public boolean updateGroupAttributes(IdpGroup group, Map<String, List<String>> attributes) {
@@ -206,17 +196,16 @@ public class KeycloakClient extends AbstractRestClient {
       throw new IllegalStateException("Authentication required");
     }
     LOG.debug("Updating group ({}) attributes: attributes={}", group.getPath(), attributes);
-    String groupUrl = serverUrl + "/admin/realms/{realm}/groups/{groupId}";
+    String apiCall = "/admin/realms/{realm}/groups/{groupId}";
     Map<String, String> uriVariables = createUriVariables("realm", realm, "groupId", group.getId());
     updateMultiValueMap(group.getAttributes(), attributes);
     try {
       JsonNode attributesNode = mapper.valueToTree(group.getAttributes());
       HttpEntity<String> entity = new HttpEntity<String>(
           "{\"attributes\": " + mapper.writeValueAsString(attributesNode) + "}", authenticationEntity.getHeaders());
-      restTemplate.exchange(groupUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException | IOException e) {
-      LOG.error("Updating group attribues failed", e);
+      return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
+    } catch (IOException e) {
+      LOG.error("Invalid group attribues", e);
     }
     return false;
   }
@@ -229,30 +218,16 @@ public class KeycloakClient extends AbstractRestClient {
       throw new IllegalStateException("Group required");
     }
     LOG.debug("Retrieving group members from group '{}", group.getPath());
-    int first = 0;
-    String groupMembersUrl = serverUrl + "/admin/realms/{realm}/groups/{groupId}/members?first={first}&max={perPage}";
-    Map<String, String> uriVariables = createUriVariables("realm", realm, "groupId", group.getId(), "first",
-        Integer.toString(first), "perPage", perPageAsString());
-    try {
-      ResponseEntity<List<IdpUser>> response = restTemplate.exchange(groupMembersUrl, HttpMethod.GET,
-          authenticationEntity, RESPONSE_TYPE_USERS, uriVariables);
-      if (response.getBody().size() < perPage) {
-        return response.getBody();
-      } else {
-        List<IdpUser> members = new ArrayList<>(response.getBody());
-        do {
-          first += perPage;
-          uriVariables.put("first", Integer.toString(first));
-          response = restTemplate.exchange(groupMembersUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS,
-              uriVariables);
-          members.addAll(response.getBody());
-        } while (response.getBody().size() == perPage);
-        return members;
-      }
-    } catch (RestClientException e) {
-      LOG.error("Retrieving group members failed", e);
-    }
-    return null;
+    String apiCall = "/admin/realms/{realm}/groups/{groupId}/members";
+    Map<String, String> uriVariables = createUriVariables("realm", realm, "groupId", group.getId());
+    return makeReadApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
+  }
+
+  protected void prepareAuthenticationEntity(String headerName, String headerValue) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set(headerName, headerValue);
+    authenticationEntity = new HttpEntity<String>(headers);
   }
 
   private HttpEntity<String> createLoginEntity(String clientId, String clientSecret) {

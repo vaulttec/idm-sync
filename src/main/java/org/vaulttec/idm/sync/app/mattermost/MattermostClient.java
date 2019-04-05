@@ -49,31 +49,46 @@ public class MattermostClient extends AbstractRestClient {
     prepareAuthenticationEntity("Authorization", "Bearer " + personalAccessToken);
   }
 
-  public List<MMUser> getUsers() {
-    LOG.debug("Retrieving users");
+  @Override
+  protected String getApiPath() {
+    return "/api/v4";
+  }
+
+  @Override
+  protected <T> List<T> makeReadListApiCall(String apiCall, ParameterizedTypeReference<List<T>> typeReference,
+      Map<String, String> uriVariables) {
     int page = 0;
-    String usersUrl = serverUrl + "/api/v4/users?page={page}&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("page", Integer.toString(page), "perPage", perPageAsString());
+    String url = getApiUrl(apiCall + (apiCall.contains("?") ? "&" : "?") + "page={page}&per_page={perPage}");
+    uriVariables.put("page", Integer.toString(page));
+    uriVariables.put("perPage", perPageAsString());
     try {
-      ResponseEntity<List<MMUser>> response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity,
-          RESPONSE_TYPE_USERS, uriVariables);
+      List<T> entities;
+      ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
+          uriVariables);
       if (response.getBody().size() < perPage) {
-        return response.getBody();
+        entities = response.getBody();
       } else {
-        List<MMUser> users = new ArrayList<>(response.getBody());
+        entities = new ArrayList<>(response.getBody());
         do {
           page++;
           uriVariables.put("page", Integer.toString(page));
-          response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS,
-              uriVariables);
-          users.addAll(response.getBody());
+          response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference, uriVariables);
+          entities.addAll(response.getBody());
         } while (response.getBody().size() == perPage);
-        return users;
+        return entities;
       }
+      return entities;
     } catch (RestClientException e) {
-      LOG.error("Retrieving users failed", e);
+      LOG.error("API call {} '{}' {} failed", "GET", url, uriVariables, e);
     }
     return null;
+  }
+
+  public List<MMUser> getUsers() {
+    LOG.debug("Retrieving users");
+    String apiCall = "/users";
+    Map<String, String> uriVariables = createUriVariables();
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
   public Map<String, MMUser> getUsersById() {
@@ -112,29 +127,9 @@ public class MattermostClient extends AbstractRestClient {
 
   public List<MMTeam> getTeams() {
     LOG.debug("Retrieving teams");
-    int page = 0;
-    String groupsUrl = serverUrl + "/api/v4/teams?page={page}&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("page", Integer.toString(page), "perPage", perPageAsString());
-    try {
-      ResponseEntity<List<MMTeam>> response = restTemplate.exchange(groupsUrl, HttpMethod.GET, authenticationEntity,
-          RESPONSE_TYPE_TEAMS, uriVariables);
-      if (response.getBody().size() < perPage) {
-        return response.getBody();
-      } else {
-        List<MMTeam> teams = new ArrayList<>(response.getBody());
-        do {
-          page++;
-          uriVariables.put("page", Integer.toString(page));
-          response = restTemplate.exchange(groupsUrl, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_TEAMS,
-              uriVariables);
-          teams.addAll(response.getBody());
-        } while (response.getBody().size() == perPage);
-        return teams;
-      }
-    } catch (RestClientException e) {
-      LOG.error("Retrieving teams failed", e);
-    }
-    return null;
+    String apiCall = "/teams";
+    Map<String, String> uriVariables = createUriVariables();
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_TEAMS, uriVariables);
   }
 
   public List<MMTeamMember> getTeamMembers(MMTeam team) {
@@ -142,30 +137,9 @@ public class MattermostClient extends AbstractRestClient {
       throw new IllegalStateException("Mattermost team with valid ID required");
     }
     LOG.debug("Retrieving members for team '{}'", team.getName());
-    int page = 0;
-    String teamMembersUrl = serverUrl + "/api/v4/teams/{teamId}/members?page={page}&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("teamId", team.getId(), "page", Integer.toString(page),
-        "perPage", perPageAsString());
-    try {
-      ResponseEntity<List<MMTeamMember>> response = restTemplate.exchange(teamMembersUrl, HttpMethod.GET,
-          authenticationEntity, RESPONSE_TYPE_TEAM_MEMBERS, uriVariables);
-      if (response.getBody().size() < perPage) {
-        return response.getBody();
-      } else {
-        List<MMTeamMember> teamMembers = new ArrayList<>(response.getBody());
-        do {
-          page++;
-          uriVariables.put("page", Integer.toString(page));
-          response = restTemplate.exchange(teamMembersUrl, HttpMethod.GET, authenticationEntity,
-              RESPONSE_TYPE_TEAM_MEMBERS, uriVariables);
-          teamMembers.addAll(response.getBody());
-        } while (response.getBody().size() == perPage);
-        return teamMembers;
-      }
-    } catch (RestClientException e) {
-      LOG.error("Retrieving team members failed", e);
-    }
-    return null;
+    String apiCall = "/teams/{teamId}/members";
+    Map<String, String> uriVariables = createUriVariables("teamId", team.getId());
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_TEAM_MEMBERS, uriVariables);
   }
 
   public boolean addMemberToTeam(MMTeam team, MMUser user) {
@@ -176,18 +150,12 @@ public class MattermostClient extends AbstractRestClient {
       throw new IllegalStateException("Mattermost user with valid ID required");
     }
     LOG.info("Adding user '{}' to team '{}' as {}", user.getUsername(), team.getName(), MMRole.TEAM_USER);
-    String teamMembersUrl = serverUrl + "/api/v4/teams/{teamId}/members";
+    String apiCall = "/teams/{teamId}/members";
     Map<String, String> uriVariables = createUriVariables("teamId", team.getId(), "userId", user.getId());
     HttpEntity<String> entity = new HttpEntity<String>("{\"team_id\": \"" + team.getId() + "\", \"user_id\": \""
         + user.getId() + "\", \"roles\": \"" + MMRole.TEAM_USER.name().toLowerCase() + "\"}",
         authenticationEntity.getHeaders());
-    try {
-      restTemplate.exchange(teamMembersUrl, HttpMethod.POST, entity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Adding user to group failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.POST, entity, uriVariables);
   }
 
   public boolean updateTeamMemberRoles(MMTeam team, MMUser user, List<MMRole> roles) {
@@ -201,7 +169,7 @@ public class MattermostClient extends AbstractRestClient {
       throw new IllegalStateException("Mattermost team role required");
     }
     LOG.info("Updating user '{}' in team '{}' wih roles {}", user.getUsername(), team.getName(), roles);
-    String teamMemberRolesUrl = serverUrl + "/api/v4/teams/{teamId}/members/{userId}/roles";
+    String apiCall = "/teams/{teamId}/members/{userId}/roles";
     Map<String, String> uriVariables = createUriVariables("teamId", team.getId(), "userId", user.getId());
     String rolesText = roles.get(0).name().toLowerCase();
     for (int i = 1; i < roles.size(); i++) {
@@ -210,13 +178,7 @@ public class MattermostClient extends AbstractRestClient {
     HttpEntity<String> entity = new HttpEntity<String>(
         "{\"roles\": \"" + MMRole.TEAM_USER.name().toLowerCase() + " " + rolesText + "\"}",
         authenticationEntity.getHeaders());
-    try {
-      restTemplate.exchange(teamMemberRolesUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Updating user roles in team failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
   }
 
   public boolean removeMemberFromTeam(MMTeam team, MMUser user) {
@@ -227,15 +189,9 @@ public class MattermostClient extends AbstractRestClient {
       throw new IllegalStateException("Mattermost user with valid ID required");
     }
     LOG.info("Removing user '{}' from team '{}'", user.getUsername(), team.getName());
-    String teamMembersUrl = serverUrl + "/api/v4/teams/{teamId}/members/{userId}";
+    String apiCall = "/teams/{teamId}/members/{userId}";
     Map<String, String> uriVariables = createUriVariables("teamId", team.getId(), "userId", user.getId());
-    try {
-      restTemplate.exchange(teamMembersUrl, HttpMethod.DELETE, authenticationEntity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Removing user from team failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.DELETE, uriVariables);
   }
 
   public MMTeam createTeam(String name, String displayName) {
@@ -246,17 +202,11 @@ public class MattermostClient extends AbstractRestClient {
     if (!StringUtils.hasText(displayName)) {
       displayName = name;
     }
-    String groupsUrl = serverUrl + "/api/v4/teams";
+    String apiCall = "/teams";
     HttpEntity<String> entity = new HttpEntity<String>(
         "{\"name\" : \"" + name + "\", \"display_name\" : \"" + displayName + "\", \"type\" : \"I\"}",
         authenticationEntity.getHeaders());
-    try {
-      MMTeam team = restTemplate.postForObject(groupsUrl, entity, MMTeam.class);
-      return team;
-    } catch (RestClientException e) {
-      LOG.error("Creating team failed", e);
-    }
-    return null;
+    return makeWriteApiCall(apiCall, entity, MMTeam.class);
   }
 
   public MMUser createUser(String username, String firstName, String lastName, String email, String authService,
@@ -271,25 +221,18 @@ public class MattermostClient extends AbstractRestClient {
     if (lastName == null) {
       lastName = "";
     }
-    String usersUrl = serverUrl + "/api/v4/users";
+    String apiCall = "/users";
     String entityBody = "{\"email\": \"" + email + "\", \"username\": \"" + username + "\", \"first_name\": \""
         + firstName + "\", \"last_name\": \"" + lastName + "\"";
 
-    // Associate user with external authentication provider (GitLab)
-    // as described in
+    // Associate user with external authentication provider (GitLab) as described in
     // https://forum.mattermost.org/t/solved-how-to-transition-a-user-to-gitlab-authentication/1070
     if (StringUtils.hasText(authService) && StringUtils.hasText(authData)) {
       entityBody += ", \"auth_service\": \"" + authService + "\", \"auth_data\": \"" + authData + "\"";
     }
     entityBody += "}";
     HttpEntity<String> entity = new HttpEntity<String>(entityBody, authenticationEntity.getHeaders());
-    try {
-      MMUser user = restTemplate.postForObject(usersUrl, entity, MMUser.class);
-      return user;
-    } catch (RestClientException e) {
-      LOG.error("Creating user failed", e);
-    }
-    return null;
+    return makeWriteApiCall(apiCall, entity, MMUser.class);
   }
 
   public boolean updateUserActiveStatus(MMUser user, boolean active) {
@@ -297,16 +240,10 @@ public class MattermostClient extends AbstractRestClient {
       throw new IllegalStateException("Mattermost user with valid ID required");
     }
     LOG.info("Updating user '{}' ({}) active ({})", user.getUsername(), user.getId(), active);
-    String userUrl = serverUrl + "/api/v4/users/{id}/active";
+    String apiCall = "/users/{id}/active";
     Map<String, String> uriVariables = createUriVariables("id", user.getId());
     HttpEntity<String> entity = new HttpEntity<String>("{\"active\": " + active + "}",
         authenticationEntity.getHeaders());
-    try {
-      restTemplate.exchange(userUrl, HttpMethod.PUT, entity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Updating user's active state failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
   }
 }

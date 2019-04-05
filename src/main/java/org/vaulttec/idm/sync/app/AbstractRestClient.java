@@ -20,15 +20,25 @@ package org.vaulttec.idm.sync.app;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 public abstract class AbstractRestClient extends AbstractClient {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractRestClient.class);
 
   protected final RestTemplate restTemplate;
   protected HttpEntity<String> authenticationEntity;
@@ -48,6 +58,12 @@ public abstract class AbstractRestClient extends AbstractClient {
     return new RestTemplate();
   }
 
+  protected String getApiUrl(String apiCall) {
+    return serverUrl + getApiPath() + apiCall;
+  }
+
+  protected abstract String getApiPath();
+
   protected Map<String, String> createUriVariables(String... variables) {
     if (variables.length % 2 != 0) {
       throw new IllegalStateException("Key-value required - uneven number of arguments");
@@ -64,5 +80,97 @@ public abstract class AbstractRestClient extends AbstractClient {
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.set(headerName, headerValue);
     authenticationEntity = new HttpEntity<String>(headers);
+  }
+
+  protected <T> T makeReadApiCall(String apiCall, ParameterizedTypeReference<T> typeReference,
+      Map<String, String> uriVariables) {
+    String url = getApiUrl(apiCall);
+    try {
+      ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
+          uriVariables);
+      return response.getBody();
+    } catch (Exception e) {
+      logException(HttpMethod.GET, uriVariables, url, e);
+    }
+    return null;
+  }
+
+  protected <T> List<T> makeReadListApiCall(String apiCall, ParameterizedTypeReference<List<T>> typeReference,
+      Map<String, String> uriVariables) {
+    String url = getApiUrl(apiCall);
+    try {
+      ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
+          uriVariables);
+      return response.getBody();
+    } catch (Exception e) {
+      logException(HttpMethod.GET, uriVariables, url, e);
+    }
+    return null;
+  }
+
+  protected boolean makeWriteApiCall(String apiCall, HttpMethod method, Map<String, String> uriVariables) {
+    String url = getApiUrl(apiCall);
+    try {
+      restTemplate.exchange(url, method, authenticationEntity, Void.class, uriVariables);
+      return true;
+    } catch (Exception e) {
+      logException(method, uriVariables, url, e);
+    }
+    return false;
+  }
+
+  protected <T> T makeWriteApiCall(String apiCall, Class<T> type, Map<String, String> uriVariables) {
+    String url = getApiUrl(apiCall);
+    try {
+      return restTemplate.postForObject(url, authenticationEntity, type, uriVariables);
+    } catch (Exception e) {
+      logException(HttpMethod.POST, uriVariables, url, e);
+    }
+    return null;
+  }
+
+  protected boolean makeWriteApiCall(String apiCall, HttpMethod method, HttpEntity<String> entity,
+      Map<String, String> uriVariables) {
+    String url = getApiUrl(apiCall);
+    try {
+      restTemplate.exchange(url, method, entity, Void.class, uriVariables);
+      return true;
+    } catch (Exception e) {
+      logException(method, uriVariables, url, e);
+    }
+    return false;
+  }
+
+  protected <T> T makeWriteApiCall(String apiCall, HttpEntity<String> entity, Class<T> type,
+      Map<String, String> uriVariables) {
+    String url = getApiUrl(apiCall);
+    try {
+      return restTemplate.postForObject(url, entity, type, uriVariables);
+    } catch (Exception e) {
+      logException(HttpMethod.POST, uriVariables, url, e);
+    }
+    return null;
+  }
+
+  protected <T> T makeWriteApiCall(String apiCall, HttpEntity<String> entity, Class<T> type) {
+    String url = getApiUrl(apiCall);
+    try {
+      return restTemplate.postForObject(url, entity, type);
+    } catch (Exception e) {
+      logException(HttpMethod.POST, null, url, e);
+    }
+    return null;
+  }
+
+  private void logException(HttpMethod method, Map<String, String> uriVariables, String url, Exception e) {
+    if (e instanceof RestClientResponseException) {
+      LOG.error("API call {} '{}' {} failed with {}: {}", method.name(), url, uriVariables != null ? uriVariables : "",
+          e.getMessage(), ((RestClientResponseException) e).getResponseBodyAsString());
+    } else if (e instanceof RestClientException) {
+      LOG.error("API call {} '{}' {} failed with {}", method.name(), url, uriVariables != null ? uriVariables : "",
+          e.getMessage());
+    } else {
+      LOG.error("API call {} '{}' {} failed", method.name(), url, uriVariables != null ? uriVariables : "", e);
+    }
   }
 }

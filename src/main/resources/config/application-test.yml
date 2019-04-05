@@ -10,7 +10,7 @@ sync:
   rate: 3000
 
 keycloak:
-  serverUrl: http://torstens-macbook-pro.local:8080/auth
+  serverUrl: http://torstens-macbook-pro.local:8080
   clientSecret: 47cae011-870e-4727-a5f0-1f92323bf829
 
 gitlab:

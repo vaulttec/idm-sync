@@ -50,35 +50,48 @@ public class GitLabClient extends AbstractRestClient {
     prepareAuthenticationEntity("PRIVATE-TOKEN", personalAccessToken);
   }
 
-  public List<GLUser> getUsers(String search) {
-    LOG.debug("Retrieving users: search={}", search);
-    String usersUrl = serverUrl + "/api/v4/users?page=1&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("perPage", perPageAsString());
-    if (StringUtils.hasText(search)) {
-      usersUrl += "&search={search}";
-      uriVariables.put("search", search);
-    }
+  @Override
+  protected String getApiPath() {
+    return "/api/v4";
+  }
+
+  @Override
+  protected <T> List<T> makeReadListApiCall(String apiCall, ParameterizedTypeReference<List<T>> typeReference,
+      Map<String, String> uriVariables) {
+    String url = getApiUrl(apiCall + (apiCall.contains("?") ? "&" : "?") + "per_page={perPage}");
+    uriVariables.put("perPage", perPageAsString());
     try {
-      List<GLUser> users;
-      ResponseEntity<List<GLUser>> response = restTemplate.exchange(usersUrl, HttpMethod.GET, authenticationEntity,
-          RESPONSE_TYPE_USERS, uriVariables);
+      List<T> entities;
+      ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
+          uriVariables);
       LinkHeader linkHeader = LinkHeader.parse(response.getHeaders());
       if (linkHeader == null || !linkHeader.hasLink(LinkHeader.Rel.NEXT)) {
-        users = response.getBody();
+        entities = response.getBody();
       } else {
-        users = new ArrayList<>(response.getBody());
+        entities = new ArrayList<>(response.getBody());
         do {
           URI nextResourceUri = linkHeader.getLink(LinkHeader.Rel.NEXT).getResourceUri();
-          response = restTemplate.exchange(nextResourceUri, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS);
-          users.addAll(response.getBody());
+          response = restTemplate.exchange(nextResourceUri, HttpMethod.GET, authenticationEntity, typeReference);
+          entities.addAll(response.getBody());
           linkHeader = LinkHeader.parse(response.getHeaders());
         } while (linkHeader != null && linkHeader.hasLink(LinkHeader.Rel.NEXT));
       }
-      return users;
+      return entities;
     } catch (RestClientException e) {
-      LOG.error("Retrieving users failed", e);
+      LOG.error("API call {} '{}' {} failed", "GET", url, uriVariables, e);
     }
     return null;
+  }
+
+  public List<GLUser> getUsers(String search) {
+    LOG.debug("Retrieving users: search={}", search);
+    String apiCall = "/users";
+    Map<String, String> uriVariables = createUriVariables();
+    if (StringUtils.hasText(search)) {
+      apiCall += "?search={search}";
+      uriVariables.put("search", search);
+    }
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
   public List<GLGroup> getGroupsWithMembers(String search) {
@@ -101,33 +114,13 @@ public class GitLabClient extends AbstractRestClient {
 
   public List<GLGroup> getGroups(String search) {
     LOG.debug("Retrieving groups: search={}", search);
-    String groupsUrl = serverUrl + "/api/v4/groups?page=1&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("perPage", perPageAsString());
+    String apiCall = "/groups";
+    Map<String, String> uriVariables = createUriVariables();
     if (StringUtils.hasText(search)) {
-      groupsUrl += "?search={search}";
+      apiCall += "?search={search}";
       uriVariables.put("search", search);
     }
-    try {
-      List<GLGroup> groups;
-      ResponseEntity<List<GLGroup>> response = restTemplate.exchange(groupsUrl, HttpMethod.GET, authenticationEntity,
-          RESPONSE_TYPE_GROUPS, uriVariables);
-      LinkHeader linkHeader = LinkHeader.parse(response.getHeaders());
-      if (linkHeader == null || !linkHeader.hasLink(LinkHeader.Rel.NEXT)) {
-        groups = response.getBody();
-      } else {
-        groups = new ArrayList<>(response.getBody());
-        do {
-          URI nextResourceUri = linkHeader.getLink(LinkHeader.Rel.NEXT).getResourceUri();
-          response = restTemplate.exchange(nextResourceUri, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_GROUPS);
-          groups.addAll(response.getBody());
-          linkHeader = LinkHeader.parse(response.getHeaders());
-        } while (linkHeader != null && linkHeader.hasLink(LinkHeader.Rel.NEXT));
-      }
-      return groups;
-    } catch (RestClientException e) {
-      LOG.error("Retrieving groups failed", e);
-    }
-    return null;
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_GROUPS, uriVariables);
   }
 
   public List<GLUser> getGroupMembers(GLGroup group) {
@@ -135,29 +128,9 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab group with valid ID required");
     }
     LOG.debug("Retrieving members for group '{}'", group.getName());
-    String groupMembersUrl = serverUrl + "/api/v4/groups/{groupId}/members?page=1&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("groupId", group.getId(), "perPage", perPageAsString());
-    try {
-      List<GLUser> users;
-      ResponseEntity<List<GLUser>> response = restTemplate.exchange(groupMembersUrl, HttpMethod.GET,
-          authenticationEntity, RESPONSE_TYPE_USERS, uriVariables);
-      LinkHeader linkHeader = LinkHeader.parse(response.getHeaders());
-      if (linkHeader == null || !linkHeader.hasLink(LinkHeader.Rel.NEXT)) {
-        users = response.getBody();
-      } else {
-        users = new ArrayList<>(response.getBody());
-        do {
-          URI nextResourceUri = linkHeader.getLink(LinkHeader.Rel.NEXT).getResourceUri();
-          response = restTemplate.exchange(nextResourceUri, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS);
-          users.addAll(response.getBody());
-          linkHeader = LinkHeader.parse(response.getHeaders());
-        } while (linkHeader != null && linkHeader.hasLink(LinkHeader.Rel.NEXT));
-      }
-      return users;
-    } catch (RestClientException e) {
-      LOG.error("Retrieving group members failed", e);
-    }
-    return null;
+    String apiCall = "/groups/{groupId}/members";
+    Map<String, String> uriVariables = createUriVariables("groupId", group.getId());
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
   public boolean addMemberToGroup(GLGroup group, GLUser user, GLPermission permission) {
@@ -168,16 +141,10 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Adding user '{}' to group '{}' as {}", user.getUsername(), group.getPath(), permission);
-    String groupMembersUrl = serverUrl + "/api/v4/groups/{groupId}/members?user_id={userId}&access_level={accessLevel}";
+    String apiCall = "/groups/{groupId}/members?user_id={userId}&access_level={accessLevel}";
     Map<String, String> uriVariables = createUriVariables("groupId", group.getId(), "userId", user.getId(),
         "accessLevel", permission.getAccessLevel());
-    try {
-      restTemplate.exchange(groupMembersUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Adding user to group failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.POST, uriVariables);
   }
 
   public boolean removeMemberFromGroup(GLGroup group, GLUser user) {
@@ -188,15 +155,9 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Removing user '{}' from group '{}'", user.getUsername(), group.getPath());
-    String groupMembersUrl = serverUrl + "/api/v4/groups/{groupId}/members/{userId}";
+    String apiCall = "/groups/{groupId}/members/{userId}";
     Map<String, String> uriVariables = createUriVariables("groupId", group.getId(), "userId", user.getId());
-    try {
-      restTemplate.exchange(groupMembersUrl, HttpMethod.DELETE, authenticationEntity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Removing user from group failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.DELETE, uriVariables);
   }
 
   public GLGroup createGroup(String path, String name, String description) {
@@ -207,20 +168,13 @@ public class GitLabClient extends AbstractRestClient {
     if (!StringUtils.hasText(name)) {
       name = path;
     }
-    String groupsUrl = serverUrl + "/api/v4/groups?path={path}&name={name}"
-        + "&request_access_enabled=false&share_with_group_lock=false";
+    String apiCall = "/groups?path={path}&name={name}&request_access_enabled=false&share_with_group_lock=false";
     Map<String, String> uriVariables = createUriVariables("name", name, "path", path);
     if (StringUtils.hasText(description)) {
-      groupsUrl += "&description={description}";
+      apiCall += "&description={description}";
       uriVariables.put("description", description);
     }
-    try {
-      GLGroup group = restTemplate.postForObject(groupsUrl, authenticationEntity, GLGroup.class, uriVariables);
-      return group;
-    } catch (RestClientException e) {
-      LOG.error("Creating group failed", e);
-    }
-    return null;
+    return makeWriteApiCall(apiCall, GLGroup.class, uriVariables);
   }
 
   public GLUser createUser(String username, String name, String email, String provider, String externUid) {
@@ -228,25 +182,19 @@ public class GitLabClient extends AbstractRestClient {
     if (!StringUtils.hasText(username) || !StringUtils.hasText(name) || !StringUtils.hasText(email)) {
       throw new IllegalStateException("username, name and email required");
     }
-    String usersUrl = serverUrl + "/api/v4/users?username={username}&name={name}&email={email}"
-        + "&password={password}&skip_confirmation=true";
+    String apiCall = "/users?username={username}&name={name}&email={email}&password={password}&skip_confirmation=true";
     Map<String, String> uriVariables = createUriVariables("username", username, "name", name, "email", email,
         "password", UUID.randomUUID().toString());
 
     // Associate user with external authentication provider (e.g. LDAP)
-    // as described in https://gitlab.com/gitlab-org/gitlab-ee/issues/699#note_19890755
+    // as described in
+    // https://gitlab.com/gitlab-org/gitlab-ee/issues/699#note_19890755
     if (StringUtils.hasText(provider) && StringUtils.hasText(externUid)) {
-      usersUrl += "&provider={provider}&extern_uid={externUid}";
+      apiCall += "&provider={provider}&extern_uid={externUid}";
       uriVariables.put("provider", provider);
       uriVariables.put("externUid", externUid.toLowerCase());
     }
-    try {
-      GLUser user = restTemplate.postForObject(usersUrl, authenticationEntity, GLUser.class, uriVariables);
-      return user;
-    } catch (RestClientException e) {
-      LOG.error("Creating user failed", e);
-    }
-    return null;
+    return makeWriteApiCall(apiCall, GLUser.class, uriVariables);
   }
 
   public boolean blockUser(GLUser user) {
@@ -254,13 +202,11 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Blocking user '{}' ({})", user.getUsername(), user.getId());
-    String usersUrl = serverUrl + "/api/v4/users/{id}/block";
+    String apiCall = "/users/{id}/block";
     Map<String, String> uriVariables = createUriVariables("id", user.getId());
-    try {
-      restTemplate.exchange(usersUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
+    if (makeWriteApiCall(apiCall, HttpMethod.POST, uriVariables)) {
+      user.setState(GLState.BLOCKED);
       return true;
-    } catch (RestClientException e) {
-      LOG.error("Blocking user failed", e);
     }
     return false;
   }
@@ -270,14 +216,11 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Unblocking user '{}' ({})", user.getUsername(), user.getId());
-    String usersUrl = serverUrl + "/api/v4/users/{id}/unblock";
+    String apiCall = "/users/{id}/unblock";
     Map<String, String> uriVariables = createUriVariables("id", user.getId());
-    try {
-      restTemplate.exchange(usersUrl, HttpMethod.POST, authenticationEntity, Void.class, uriVariables);
+    if (makeWriteApiCall(apiCall, HttpMethod.POST, uriVariables)) {
       user.setState(GLState.ACTIVE);
       return true;
-    } catch (RestClientException e) {
-      LOG.error("Unblocking user failed", e);
     }
     return false;
   }
@@ -288,15 +231,12 @@ public class GitLabClient extends AbstractRestClient {
     if (!StringUtils.hasText(provider) || !StringUtils.hasText(externUid)) {
       throw new IllegalStateException("provider and externUid required");
     }
-    String usersUrl = serverUrl + "/api/v4/users/{id}?provider={provider}&extern_uid={externUid}";
+    String apiCall = "/users/{id}?provider={provider}&extern_uid={externUid}";
     Map<String, String> uriVariables = createUriVariables("id", user.getId(), "provider", provider, "externUid",
         externUid.toLowerCase());
-    try {
-      restTemplate.exchange(usersUrl, HttpMethod.PUT, authenticationEntity, Void.class, uriVariables);
+    if (makeWriteApiCall(apiCall, HttpMethod.PUT, uriVariables)) {
       user.addIdentity(provider, externUid);
       return true;
-    } catch (RestClientException e) {
-      LOG.error("Adding identity to user failed", e);
     }
     return false;
   }
@@ -306,15 +246,9 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Deleting user '{}' ({})", user.getUsername(), user.getId());
-    String usersUrl = serverUrl + "/api/v4/users/{id}?hard_delete={hard}";
+    String apiCall = "/users/{id}?hard_delete={hard}";
     Map<String, String> uriVariables = createUriVariables("id", user.getId(), "hard", Boolean.toString(hard));
-    try {
-      restTemplate.exchange(usersUrl, HttpMethod.DELETE, authenticationEntity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Deleting user failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.DELETE, uriVariables);
   }
 
   public List<GLProject> getProjectsFromGroup(GLGroup group, String search) {
@@ -322,34 +256,13 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab group with valid ID required");
     }
     LOG.debug("Retrieving projects from group '{}': search={}", group.getName(), search);
-    String projectsUrl = serverUrl + "/api/v4/groups/{groupId}/projects?page=1&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("groupId", group.getId(), "perPage", perPageAsString());
+    String apiCall = "/groups/{groupId}/projects";
+    Map<String, String> uriVariables = createUriVariables("groupId", group.getId());
     if (StringUtils.hasText(search)) {
-      projectsUrl += "?search={search}";
+      apiCall += "?search={search}";
       uriVariables.put("search", search);
     }
-    try {
-      List<GLProject> projects;
-      ResponseEntity<List<GLProject>> response = restTemplate.exchange(projectsUrl, HttpMethod.GET,
-          authenticationEntity, RESPONSE_TYPE_PROJECTS, uriVariables);
-      LinkHeader linkHeader = LinkHeader.parse(response.getHeaders());
-      if (linkHeader == null || !linkHeader.hasLink(LinkHeader.Rel.NEXT)) {
-        projects = response.getBody();
-      } else {
-        projects = new ArrayList<>(response.getBody());
-        do {
-          URI nextResourceUri = linkHeader.getLink(LinkHeader.Rel.NEXT).getResourceUri();
-          response = restTemplate.exchange(nextResourceUri, HttpMethod.GET, authenticationEntity,
-              RESPONSE_TYPE_PROJECTS);
-          projects.addAll(response.getBody());
-          linkHeader = LinkHeader.parse(response.getHeaders());
-        } while (linkHeader != null && linkHeader.hasLink(LinkHeader.Rel.NEXT));
-      }
-      return projects;
-    } catch (RestClientException e) {
-      LOG.error("Retrieving projects failed", e);
-    }
-    return null;
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_PROJECTS, uriVariables);
   }
 
   public List<GLUser> getProjectUsers(GLProject project) {
@@ -357,29 +270,9 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab project with valid ID required");
     }
     LOG.debug("Retrieving users for project '{}'", project.getPath());
-    String groupMembersUrl = serverUrl + "/api/v4/projects/{projectId}/users?page=1&per_page={perPage}";
-    Map<String, String> uriVariables = createUriVariables("projectId", project.getId(), "perPage", perPageAsString());
-    try {
-      List<GLUser> users;
-      ResponseEntity<List<GLUser>> response = restTemplate.exchange(groupMembersUrl, HttpMethod.GET,
-          authenticationEntity, RESPONSE_TYPE_USERS, uriVariables);
-      LinkHeader linkHeader = LinkHeader.parse(response.getHeaders());
-      if (linkHeader == null || !linkHeader.hasLink(LinkHeader.Rel.NEXT)) {
-        users = response.getBody();
-      } else {
-        users = new ArrayList<>(response.getBody());
-        do {
-          URI nextResourceUri = linkHeader.getLink(LinkHeader.Rel.NEXT).getResourceUri();
-          response = restTemplate.exchange(nextResourceUri, HttpMethod.GET, authenticationEntity, RESPONSE_TYPE_USERS);
-          users.addAll(response.getBody());
-          linkHeader = LinkHeader.parse(response.getHeaders());
-        } while (linkHeader != null && linkHeader.hasLink(LinkHeader.Rel.NEXT));
-      }
-      return users;
-    } catch (RestClientException e) {
-      LOG.error("Retrieving project users failed", e);
-    }
-    return null;
+    String apiCall = "/projects/{projectId}/users";
+    Map<String, String> uriVariables = createUriVariables("projectId", project.getId());
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
   public boolean removeMemberFromProject(GLProject project, GLUser user) {
@@ -390,14 +283,8 @@ public class GitLabClient extends AbstractRestClient {
       throw new IllegalStateException("GitLab user with valid ID required");
     }
     LOG.info("Removing user '{}' from project '{}'", user.getUsername(), project.getPath());
-    String projectUsersUrl = serverUrl + "/api/v4/projects/{projectId}/members/{userId}";
+    String apiCall = "/projects/{projectId}/members/{userId}";
     Map<String, String> uriVariables = createUriVariables("projectId", project.getId(), "userId", user.getId());
-    try {
-      restTemplate.exchange(projectUsersUrl, HttpMethod.DELETE, authenticationEntity, Void.class, uriVariables);
-      return true;
-    } catch (RestClientException e) {
-      LOG.error("Removing user from project failed", e);
-    }
-    return false;
+    return makeWriteApiCall(apiCall, HttpMethod.DELETE, uriVariables);
   }
 }

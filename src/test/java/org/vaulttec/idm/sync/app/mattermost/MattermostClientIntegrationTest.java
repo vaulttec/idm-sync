@@ -87,7 +87,7 @@ public class MattermostClientIntegrationTest {
   @Test
   @Ignore
   public void testCreateUser() {
-    MMUser user = client.createUser("x000042", "John", "Doo", "john.doo@acme.com", "gitlab", "42");
+    MMUser user = client.createUser("x000042", "John", "Doo", "john.doo@acme.com", "gitlab", "x000042");
     assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000042");
   }
 
@@ -103,7 +103,7 @@ public class MattermostClientIntegrationTest {
   public void testAddMemberToTeam() {
     MMTeam team = client.createTeam("test2", "test2 Team");
     assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test2");
-    MMUser user = client.createUser("x000043", "John", "Doo2", "john.doo2@acme.com", "gitlab", "443");
+    MMUser user = client.createUser("x000043", "John", "Doo3", "john.doo3@acme.com", "gitlab", "x000043");
     assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000043");
     assertTrue(client.addMemberToTeam(team, user));
   }
@@ -111,10 +111,10 @@ public class MattermostClientIntegrationTest {
   @Test
   @Ignore
   public void testUpdateTeamMemberRoles() {
-    MMTeam team = client.createTeam("test2", "test2 Team");
-    assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test2");
-    MMUser user = client.createUser("x000043", "John", "Doo2", "john.doo2@acme.com", "gitlab", "443");
-    assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000043");
+    MMTeam team = client.createTeam("test3", "test3 Team");
+    assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test3");
+    MMUser user = client.createUser("x000044", "John", "Doo4", "john.doo2@acme.com", "gitlab", "x000044");
+    assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000044");
     assertTrue(client.addMemberToTeam(team, user));
     assertTrue(client.updateTeamMemberRoles(team, user, Arrays.asList(MMRole.TEAM_ADMIN)));
   }
@@ -122,10 +122,10 @@ public class MattermostClientIntegrationTest {
   @Test
   @Ignore
   public void testRemoveMemberFromTeam() {
-    MMTeam team = client.createTeam("test2", "test2 Team");
-    assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test2");
-    MMUser user = client.createUser("x000043", "John", "Doo2", "john.doo2@acme.com", "gitlab", "42");
-    assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000043");
+    MMTeam team = client.createTeam("test4", "test4 Team");
+    assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test4");
+    MMUser user = client.createUser("x000045", "John", "Doo5", "john.doo5@acme.com", "gitlab", "x000045");
+    assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000045");
     assertTrue(client.addMemberToTeam(team, user));
     assertTrue(client.removeMemberFromTeam(team, user));
   }
@@ -133,8 +133,8 @@ public class MattermostClientIntegrationTest {
   @Test
   @Ignore
   public void testUpdateUserActiveStatus() {
-    MMUser user = client.createUser("x000044", "John", "Doo3", "john.doo3@acme.com", "gitlab", "42");
-    assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000044");
+    MMUser user = client.createUser("x000046", "John", "Doo6", "john.doo6@acme.com", "gitlab", "x000046");
+    assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000046");
     assertTrue(client.updateUserActiveStatus(user, false));
     assertTrue(client.updateUserActiveStatus(user, true));
   }
