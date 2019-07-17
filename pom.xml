@@ -98,6 +98,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -142,7 +143,7 @@
 								<argument>build</argument>
 								<argument>-t=${project.artifactId}</argument>
 								<argument>--build-arg</argument>
-								<argument>JAR_FILE=target/${project.build.finalName}.jar</argument>
+								<argument>JAR_FILE=target/${project.artifactId}.jar</argument>
 								<argument>.</argument>
 							</arguments>
 						</configuration>

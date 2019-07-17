@@ -1,0 +1,27 @@
+sudo: required
+language: java
+jdk: oraclejdk8
+ 
+services:
+- docker
+ 
+env:
+  global:
+    - COMMIT=${TRAVIS_COMMIT::7}
+
+script:
+  - ./mvnw clean install -B -Dskip.docker.build=true
+
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+
+after_success:
+  # APP_NAME, DOCKER_USERNAME and DOCKER_PASSWORD are defined in Travis repository settings 
+  - export IMAGE_NAME=$DOCKER_USERNAME/$APP_NAME
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH; fi`
+  - export IMAGE_NAME=$DOCKER_USERNAME/gitlab-enforcer
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t $IMAGE_NAME:$COMMIT --build-arg JAR_FILE=target/$APP_NAME.jar .
+  - docker tag $IMAGE_NAME:$COMMIT $IMAGE_NAME:$TAG
+  - docker push $IMAGE_NAME
