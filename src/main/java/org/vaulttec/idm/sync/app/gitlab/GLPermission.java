@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum GLPermission {
-  GUEST("10"), REPORTER("20"), DEVELOPER("30"), MAINTAINER("40"), OWNER("50");
+  NO("0"), GUEST("10"), REPORTER("20"), DEVELOPER("30"), MAINTAINER("40"), OWNER("50"), ADMIN("60");
 
   private final static Map<String, GLPermission> ENUM_NAME_MAP;
   static {
