@@ -20,6 +20,7 @@ package org.vaulttec.idm.sync.app;
 import java.util.List;
 
 import org.vaulttec.idm.sync.idp.IdpGroup;
+import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
 
 public interface Application {
 
@@ -28,6 +29,8 @@ public interface Application {
   String getName();
 
   String getGroupSearch();
+
+  IdpGroupRepresentation getGroupRepresentation(IdpGroup group);
 
   boolean sync(List<IdpGroup> groups);
 }

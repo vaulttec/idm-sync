@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.AbstractApplication;
 import org.vaulttec.idm.sync.idp.IdpGroup;
+import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
 import org.vaulttec.idm.sync.idp.IdpUser;
 import org.vaulttec.util.StringUtils;
 
@@ -66,6 +67,19 @@ public class GitLab extends AbstractApplication {
   @Override
   public String getName() {
     return "GitLab";
+  }
+
+  @Override
+  public IdpGroupRepresentation getGroupRepresentation(IdpGroup group) {
+    if (group != null) {
+      Matcher matcher = getGroupNameMatcher(group.getName());
+      String groupPath = matcher.group("groupPath");
+      String permissionName = matcher.group("permission");
+      if (groupPath != null && permissionName != null) {
+        return new IdpGroupRepresentation("Group", groupPath, permissionName);
+      }
+    }
+    return null;
   }
 
   @Override
