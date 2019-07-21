@@ -14,7 +14,7 @@ mvn -N io.takari:maven:wrapper
 ## Run the project with
 
 ```
-./mvnw clean spring-boot:run
+./mvnw clean spring-boot:run -Dspring-boot.run.profiles=test
 ```
 
 Open browser to http://localhost:8080/
