@@ -18,23 +18,30 @@
 package org.vaulttec.idm.sync;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.actuate.info.Info.Builder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
+import org.vaulttec.idm.sync.app.Application;
 
 @Component
 public class SyncInfoContributor implements InfoContributor {
 
-  @Autowired
-  private SyncTask syncTask;
+  private final SyncTask syncTask;
+  private final List<String> appNames;
+
+  SyncInfoContributor(SyncTask syncTask, List<Application> apps) {
+    this.syncTask = syncTask;
+    this.appNames = apps.stream().map(a -> a.getName()).collect(Collectors.toList());
+  }
 
   @Override
   public void contribute(Builder builder) {
     Map<String, Object> syncDetails = new HashMap<>();
-    syncDetails.put("apps", syncTask.getApplicationNames());
+    syncDetails.put("apps", appNames);
     syncDetails.put("lastSync", syncTask.getLastSyncTime());
     builder.withDetail("sync", syncDetails);
   }
