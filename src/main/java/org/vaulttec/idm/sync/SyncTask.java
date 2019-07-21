@@ -18,8 +18,6 @@
 package org.vaulttec.idm.sync;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,33 +26,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.vaulttec.idm.sync.app.Application;
+import org.vaulttec.idm.sync.idp.AbstractIdentityProviderAccess;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 import org.vaulttec.util.StringUtils;
 
 @Component
-public class SyncTask {
+public class SyncTask extends AbstractIdentityProviderAccess {
 
   private static final Logger LOG = LoggerFactory.getLogger(SyncTask.class);
 
-  private final IdentityProvider idp;
-  private final List<Application> apps;
   private final SyncConfig syncConfig;
   private Instant lastSyncTime;
 
-  SyncTask(IdentityProvider idp, List<Application> apps, SyncConfig syncConfig) {
-    this.idp = idp;
-    this.apps = apps;
+  SyncTask(IdentityProvider idp, List<Application> applications, SyncConfig syncConfig) {
+    super(idp, applications);
     this.syncConfig = syncConfig;
-  }
-
-  public List<String> getApplicationNames() {
-    List<String> appNames = new ArrayList<>();
-    for (Application app : apps) {
-      appNames.add(app.getName());
-    }
-    return appNames;
   }
 
   public Instant getLastSyncTime() {
@@ -65,7 +53,7 @@ public class SyncTask {
   public void sync() {
     LOG.info("Start syncing...");
     if (idp.authenticate()) {
-      for (Application app : apps) {
+      for (Application app : applications) {
         if (syncConfig.getEnabledApps().contains("*") || syncConfig.getEnabledApps().contains(app.getId())) {
           LOG.info("Syncing '{}'", app.getName());
           List<IdpGroup> groups = idp.getGroups(app.getGroupSearch());
@@ -83,26 +71,6 @@ public class SyncTask {
       lastSyncTime = Instant.now();
     }
     LOG.info("Finished syncing...");
-  }
-
-  private Map<String, IdpUser> retrieveMembersForGroups(List<IdpGroup> groups) {
-    Map<String, IdpUser> users = new HashMap<>();
-    for (IdpGroup group : groups) {
-      List<IdpUser> members = idp.getGroupMembers(group);
-      if (members == null) {
-        return null;
-      } else {
-        for (IdpUser member : members) {
-          if (!users.containsKey(member.getId())) {
-            users.put(member.getId(), member);
-          }
-          IdpUser user = users.get(member.getId());
-          user.addGroup(group);
-          group.addMember(user);
-        }
-      }
-    }
-    return users;
   }
 
   private void addMissingEmail(Map<String, IdpUser> users) {
