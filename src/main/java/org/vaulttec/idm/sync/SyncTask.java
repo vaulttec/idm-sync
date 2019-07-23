@@ -18,6 +18,7 @@
 package org.vaulttec.idm.sync;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,22 +27,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.vaulttec.idm.sync.app.Application;
-import org.vaulttec.idm.sync.idp.AbstractIdentityProviderAccess;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 import org.vaulttec.util.StringUtils;
 
 @Component
-public class SyncTask extends AbstractIdentityProviderAccess {
+public class SyncTask {
 
   private static final Logger LOG = LoggerFactory.getLogger(SyncTask.class);
 
+  private final IdentityProvider idp;
+  private final List<Application> applications;
   private final SyncConfig syncConfig;
   private Instant lastSyncTime;
 
   SyncTask(IdentityProvider idp, List<Application> applications, SyncConfig syncConfig) {
-    super(idp, applications);
+    this.idp = idp;
+    this.applications = applications;
     this.syncConfig = syncConfig;
   }
 
@@ -71,6 +74,32 @@ public class SyncTask extends AbstractIdentityProviderAccess {
       lastSyncTime = Instant.now();
     }
     LOG.info("Finished syncing...");
+  }
+
+  /**
+   * Returns a map with all users which are members of the given list of groups.
+   * <p>
+   * These groups and users or linked with each other by the attributes
+   * <code>IdpGroup.members</code> and <code>IdpUser.groups</code>.
+   */
+  private Map<String, IdpUser> retrieveMembersForGroups(List<IdpGroup> groups) {
+    Map<String, IdpUser> users = new HashMap<>();
+    for (IdpGroup group : groups) {
+      List<IdpUser> members = idp.getGroupMembers(group);
+      if (members == null) {
+        return null;
+      } else {
+        for (IdpUser member : members) {
+          if (!users.containsKey(member.getId())) {
+            users.put(member.getId(), member);
+          }
+          IdpUser user = users.get(member.getId());
+          user.addGroup(group);
+          group.addMember(user);
+        }
+      }
+    }
+    return users;
   }
 
   private void addMissingEmail(Map<String, IdpUser> users) {
