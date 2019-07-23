@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.api;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +94,47 @@ public class ApiController {
       }
     });
     return organizations;
+  }
+
+  @GetMapping("/{appId}/organizations/{orgName}/members")
+  public @ResponseBody Collection<AppUser> getOrganizationMembers(@PathVariable("appId") String appId,
+      @PathVariable("orgName") String orgName) {
+    Application application = getApplication(appId);
+    LOG.debug("Getting members of organization '{}' of application '{}'", orgName, application.getName());
+    if (idp.authenticate()) {
+      return getOrganisationMembers(application, orgName).values();
+    }
+    return null;
+  }
+
+  private Map<String, AppUser> getOrganisationMembers(Application application, String orgName) {
+    List<IdpGroup> groups = idp.getGroups(application.getGroupSearch());
+    List<IdpGroup> orgGroups = new ArrayList<IdpGroup>();
+    groups.forEach(g -> {
+      IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(g);
+      if (orgName.equals(groupRepresentation.getName())) {
+        orgGroups.add(g);
+      }
+    });
+    return getMembers(application, orgGroups);
+  }
+
+  private Map<String, AppUser> getMembers(Application application, List<IdpGroup> groups) {
+    Map<String, AppUser> users = new HashMap<String, AppUser>();
+    for (IdpGroup group : groups) {
+      IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(group);
+      List<IdpUser> members = idp.getGroupMembers(group);
+      if (members != null) {
+        for (IdpUser member : members) {
+            if (!users.containsKey(member.getUsername())) {
+              users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
+            }
+            AppUser user = users.get(member.getUsername());
+            user.addOrganization(new AppOrganization(groupRepresentation.getName(), groupRepresentation.getRole()));
+          }
+      }
+    }
+    return users;
   }
 
   @GetMapping("/{appId}/users")
