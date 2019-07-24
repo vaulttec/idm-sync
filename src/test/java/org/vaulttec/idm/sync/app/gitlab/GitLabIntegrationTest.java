@@ -20,6 +20,7 @@ package org.vaulttec.idm.sync.app.gitlab;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.Before;
@@ -44,6 +45,12 @@ import org.vaulttec.idm.sync.idp.keycloak.KeycloakClientBuilder;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 public class GitLabIntegrationTest {
+
+  private static final Comparator<String> INTEGER_STRING_COMPARATOR = new Comparator<String>() {
+    public int compare(String s1, String s2) {
+      return Integer.parseInt(s1) - Integer.parseInt(s2);
+    }
+  };
 
   @Autowired
   private Environment env;
@@ -100,6 +107,9 @@ public class GitLabIntegrationTest {
     List<AppStatistics> statisticsList = gitlab.getStatistics();
     assertThat(statisticsList).isNotNull().isNotEmpty();
     AppStatistics statistics = statisticsList.get(0);
+    assertThat(statistics.getStatistics()).isNotEmpty().containsKey("members");
+    assertThat(statistics.getStatistics().get("members")).isNotEmpty().usingComparator(INTEGER_STRING_COMPARATOR)
+        .isGreaterThan("0");
     assertThat(statistics.getStatistics()).isNotEmpty().containsKey("repository_size");
   }
 }

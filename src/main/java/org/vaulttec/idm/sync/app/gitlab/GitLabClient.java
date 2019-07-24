@@ -94,9 +94,9 @@ public class GitLabClient extends AbstractRestClient {
     return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
-  public List<GLGroup> getGroupsWithMembers(String search) {
-    LOG.debug("Retrieving groups with members: search={}", search);
-    List<GLGroup> groups = getGroups(search, false);
+  public List<GLGroup> getGroupsWithMembers(String search, boolean withStatistics) {
+    LOG.debug("Retrieving groups with members: search={}, withStatistics={}", search, withStatistics);
+    List<GLGroup> groups = getGroups(search, withStatistics);
     if (groups != null) {
       for (GLGroup group : groups) {
         List<GLUser> members = getGroupMembers(group);

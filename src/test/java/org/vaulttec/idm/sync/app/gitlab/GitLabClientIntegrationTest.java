@@ -62,7 +62,7 @@ public class GitLabClientIntegrationTest {
 
   @Test
   public void testGetGroupsWithMembers() {
-    List<GLGroup> groups = client.getGroupsWithMembers(null);
+    List<GLGroup> groups = client.getGroupsWithMembers(null, false);
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
       LOG.info("{} ({}):", group.getName(), group.getMembers().size());

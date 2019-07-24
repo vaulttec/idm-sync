@@ -197,7 +197,7 @@ public class GitLab extends AbstractApplication {
   }
 
   protected boolean syncGroups(Map<String, GLGroup> targetGroups, Map<String, GLUser> syncedUsers) {
-    List<GLGroup> sourceGroups = client.getGroupsWithMembers(null);
+    List<GLGroup> sourceGroups = client.getGroupsWithMembers(null, false);
     if (sourceGroups != null) {
 
       // Update memberships of existing groups
@@ -367,11 +367,11 @@ public class GitLab extends AbstractApplication {
   @Override
   public List<AppStatistics> getStatistics() {
     List<AppStatistics> statistics = new ArrayList<>();
-    List<GLGroup> groups = client.getGroups(null, true);
+    List<GLGroup> groups = client.getGroupsWithMembers(null, true);
     for (GLGroup group : groups) {
       Collection<GLUser> members = group.getMembers();
       AppStatistics groupStatistics = new AppStatistics(group.getName());
-      groupStatistics.addStatistic("members", Long.toString(members.size()));
+      groupStatistics.addStatistic("members", Integer.toString(members.size()));
       groupStatistics.addStatistics(group.getStatistics());
       statistics.add(groupStatistics);
     }

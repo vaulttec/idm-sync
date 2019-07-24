@@ -77,7 +77,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createUser(null, null, null, null, null);
     verify(client).createGroup("grp1", "grp1", null);
     verify(client, never()).addMemberToGroup(glGroup, null, null);
@@ -103,7 +103,7 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(new ArrayList<>());
     when(client.createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID)).thenReturn(glUser);
-    when(client.getGroupsWithMembers(null)).thenReturn(new ArrayList<>());
+    when(client.getGroupsWithMembers(null, false)).thenReturn(new ArrayList<>());
     when(client.createGroup("grp1", "grp1", null)).thenReturn(glGroup);
     when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
 
@@ -126,7 +126,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client).createGroup("grp1", "grp1", null);
     verify(client).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID);
     verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -164,7 +164,7 @@ public class GitLabTest {
     glGroups.add(glGroup);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.createUser("user2", "User 2", "user2@acme.com", PROVIDER_NAME, EXTERNAL_UID)).thenReturn(glUser2);
     when(client.addMemberToGroup(glGroup, glUser2, GLPermission.DEVELOPER)).thenReturn(true);
 
@@ -198,7 +198,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID);
     verify(client).createUser("user2", "User 2", "user2@acme.com", PROVIDER_NAME, EXTERNAL_UID);
@@ -232,7 +232,7 @@ public class GitLabTest {
     glGroup.addMember(glUser, GLPermission.MAINTAINER);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.removeMemberFromGroup(glGroup, glUser)).thenReturn(true);
     when(client.blockUser(glUser)).thenReturn(true);
 
@@ -245,7 +245,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -274,7 +274,7 @@ public class GitLabTest {
     glGroup.addMember(glUser, GLPermission.MAINTAINER);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.removeMemberFromGroup(glGroup, glUser)).thenReturn(true);
     when(client.blockUser(glUser)).thenReturn(true);
 
@@ -283,7 +283,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -319,7 +319,7 @@ public class GitLabTest {
     glGroups.add(glGroup);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.removeMemberFromGroup(glGroup, glUser2)).thenReturn(true);
     when(client.blockUser(glUser2)).thenReturn(true);
 
@@ -342,7 +342,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -378,7 +378,7 @@ public class GitLabTest {
     glGroups.add(glGroup);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.removeMemberFromGroup(glGroup, glUser2)).thenReturn(true);
     when(client.unblockUser(glUser)).thenReturn(true);
 
@@ -401,7 +401,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -433,7 +433,7 @@ public class GitLabTest {
     glGroups.add(glGroup);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
     when(client.unblockUser(glUser)).thenReturn(true);
 
@@ -456,7 +456,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -489,7 +489,7 @@ public class GitLabTest {
     glGroup.addMember(glUser, GLPermission.REPORTER);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
     when(client.removeMemberFromGroup(glGroup, glUser)).thenReturn(true);
 
@@ -522,7 +522,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -573,7 +573,7 @@ public class GitLabTest {
     when(client.removeMemberFromProject(glProject, glUser2)).thenReturn(true);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.getProjectsFromGroup(glGroup, null)).thenReturn(glProjects);
     when(client.getProjectUsers(glProject)).thenReturn(glProjectUsers);
 
@@ -603,7 +603,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.DEVELOPER);
@@ -636,7 +636,7 @@ public class GitLabTest {
     glGroups.add(glGroup);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
 
     IdpUser idpUser = new IdpUser();
     idpUser.setUsername("user1");
@@ -657,7 +657,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
@@ -695,7 +695,7 @@ public class GitLabTest {
     glGroups.add(glGroup2);
 
     when(client.getUsers(null)).thenReturn(glUsers);
-    when(client.getGroupsWithMembers(null)).thenReturn(glGroups);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID)).thenReturn(glUser);
     when(client.addMemberToGroup(glGroup1, glUser, GLPermission.DEVELOPER)).thenReturn(true);
     when(client.addMemberToGroup(glGroup2, glUser, GLPermission.MAINTAINER)).thenReturn(true);
@@ -724,7 +724,7 @@ public class GitLabTest {
     app.sync(idpGroups);
 
     verify(client).getUsers(null);
-    verify(client).getGroupsWithMembers(null);
+    verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createGroup("grp2", "grp2", null);
     verify(client).createUser("user1", "User 1", "user1@acme.com", PROVIDER_NAME, EXTERNAL_UID);
