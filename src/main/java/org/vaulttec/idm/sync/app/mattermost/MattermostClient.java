@@ -42,6 +42,8 @@ public class MattermostClient extends AbstractRestClient {
   };
   protected static final ParameterizedTypeReference<List<MMTeamMember>> RESPONSE_TYPE_TEAM_MEMBERS = new ParameterizedTypeReference<List<MMTeamMember>>() {
   };
+  protected static final ParameterizedTypeReference<List<MMTeamChannel>> RESPONSE_TYPE_TEAM_CHANNELS = new ParameterizedTypeReference<List<MMTeamChannel>>() {
+  };
 
   MattermostClient(String serverUrl, int perPage, String personalAccessToken, String proxyHost, int proxyPort) {
     super(serverUrl, perPage, proxyHost, proxyPort);
@@ -245,5 +247,15 @@ public class MattermostClient extends AbstractRestClient {
     HttpEntity<String> entity = new HttpEntity<String>("{\"active\": " + active + "}",
         authenticationEntity.getHeaders());
     return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
+  }
+
+  public List<MMTeamChannel> getTeamChannels(MMTeam team) {
+    if (team == null || !StringUtils.hasText(team.getId())) {
+      throw new IllegalStateException("Mattermost team with valid ID required");
+    }
+    LOG.debug("Retrieving channels for team '{}'", team.getName());
+    String apiCall = "/teams/{teamId}/channels";
+    Map<String, String> uriVariables = createUriVariables("teamId", team.getId());
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_TEAM_CHANNELS, uriVariables);
   }
 }

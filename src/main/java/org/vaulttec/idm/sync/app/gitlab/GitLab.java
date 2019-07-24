@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.AbstractApplication;
+import org.vaulttec.idm.sync.app.model.AppStatistics;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
 import org.vaulttec.idm.sync.idp.IdpUser;
@@ -361,5 +362,19 @@ public class GitLab extends AbstractApplication {
       }
     }
     return users;
+  }
+
+  @Override
+  public List<AppStatistics> getStatistics() {
+    List<AppStatistics> statistics = new ArrayList<>();
+    List<GLGroup> groups = client.getGroups(null, true);
+    for (GLGroup group : groups) {
+      Collection<GLUser> members = group.getMembers();
+      AppStatistics groupStatistics = new AppStatistics(group.getName());
+      groupStatistics.addStatistic("members", Long.toString(members.size()));
+      groupStatistics.addStatistics(group.getStatistics());
+      statistics.add(groupStatistics);
+    }
+    return statistics;
   }
 }

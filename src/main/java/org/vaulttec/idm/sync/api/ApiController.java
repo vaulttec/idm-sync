@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.vaulttec.idm.sync.app.Application;
 import org.vaulttec.idm.sync.app.model.AppApplication;
 import org.vaulttec.idm.sync.app.model.AppOrganization;
+import org.vaulttec.idm.sync.app.model.AppStatistics;
 import org.vaulttec.idm.sync.app.model.AppUser;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
 import org.vaulttec.idm.sync.idp.IdpGroup;
@@ -135,6 +136,16 @@ public class ApiController {
       }
     }
     return users;
+  }
+
+  @GetMapping("/{appId}/statistics")
+  public @ResponseBody List<AppStatistics> getOrganizationsStatistics(@PathVariable("appId") String appId) {
+    Application application = getApplication(appId);
+    LOG.debug("Getting statistics for application '{}'", application.getName());
+    if (idp.authenticate()) {
+      return application.getStatistics();
+    }
+    return null;
   }
 
   @GetMapping("/{appId}/users")

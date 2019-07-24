@@ -86,7 +86,7 @@ public class GitLabClientIntegrationTest {
 
   @Test
   public void testGetProjectsFromGroup() {
-    List<GLGroup> groups = client.getGroups(null);
+    List<GLGroup> groups = client.getGroups(null, false);
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
       LOG.info("{}:", group.getName());
@@ -100,7 +100,7 @@ public class GitLabClientIntegrationTest {
 
   @Test
   public void testGetUsersFromProject() {
-    List<GLGroup> groups = client.getGroups(null);
+    List<GLGroup> groups = client.getGroups(null, false);
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
       LOG.info("{}:", group.getName());
@@ -138,5 +138,13 @@ public class GitLabClientIntegrationTest {
     assertThat(identities.get(1).getProvider()).startsWith("foo");
     assertThat(identities.get(1).getExternUid()).startsWith("bar");
     assertThat(client.deleteUser(user, true)).isTrue();
+  }
+
+  @Test
+  public void testGroupStatistics() {
+    List<GLGroup> groups = client.getGroups(null, true);
+    assertThat(groups).isNotNull().isNotEmpty();
+    GLGroup group = groups.get(0);
+    assertThat(group.getStatistics()).isNotEmpty().containsKey("repository_size");
   }
 }

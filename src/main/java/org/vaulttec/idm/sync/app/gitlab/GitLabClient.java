@@ -96,7 +96,7 @@ public class GitLabClient extends AbstractRestClient {
 
   public List<GLGroup> getGroupsWithMembers(String search) {
     LOG.debug("Retrieving groups with members: search={}", search);
-    List<GLGroup> groups = getGroups(search);
+    List<GLGroup> groups = getGroups(search, false);
     if (groups != null) {
       for (GLGroup group : groups) {
         List<GLUser> members = getGroupMembers(group);
@@ -112,12 +112,12 @@ public class GitLabClient extends AbstractRestClient {
     return null;
   }
 
-  public List<GLGroup> getGroups(String search) {
-    LOG.debug("Retrieving groups: search={}", search);
-    String apiCall = "/groups";
-    Map<String, String> uriVariables = createUriVariables();
+  public List<GLGroup> getGroups(String search, boolean withStatistics) {
+    LOG.debug("Retrieving groups: search={}, withStatistics={}", search, withStatistics);
+    String apiCall = "/groups?statistics={statistics}";
+    Map<String, String> uriVariables = createUriVariables("statistics", Boolean.toString(withStatistics));
     if (StringUtils.hasText(search)) {
-      apiCall += "?search={search}";
+      apiCall += "&search={search}";
       uriVariables.put("search", search);
     }
     return makeReadListApiCall(apiCall, RESPONSE_TYPE_GROUPS, uriVariables);

@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
+import org.vaulttec.idm.sync.app.model.AppStatistics;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClient;
@@ -45,9 +47,11 @@ public class MattermostIntegrationTest {
 
   @Autowired
   private Environment env;
+  private KeycloakClient kcClient;
+  private Mattermost mattermost;
 
-  @Test
-  public void testSync() {
+  @Before
+  public void setup() {
     KeycloakClientBuilder kcBuilder = new KeycloakClientBuilder(env.getProperty("idp.config.serverUrl"))
         .realm(env.getProperty("idp.config.realm")).clientId(env.getProperty("idp.config.client.id"))
         .clientSecret(env.getProperty("idp.config.client.secret"));
@@ -55,19 +59,8 @@ public class MattermostIntegrationTest {
       kcBuilder = kcBuilder.proxyHost(env.getProperty("proxy.host"))
           .proxyPort(Integer.parseInt(env.getProperty("proxy.port")));
     }
-    KeycloakClient kcClient = kcBuilder.build();
-
+    kcClient = kcBuilder.build();
     assertTrue(kcClient.authenticate());
-    List<IdpGroup> groups = kcClient.getGroups(env.getProperty("apps[1].config.group.search"));
-    assertThat(groups).isNotNull().isNotEmpty();
-    for (IdpGroup group : groups) {
-      List<IdpUser> members = kcClient.getGroupMembers(group);
-      assertThat(members).isNotNull();
-      for (IdpUser member : members) {
-        member.addGroup(group);
-        group.addMember(member);
-      }
-    }
 
     MattermostClientBuilder mmcBuilder = new MattermostClientBuilder(env.getProperty("apps[1].config.serverUrl"))
         .perPage(Integer.parseInt(env.getProperty("apps[1].config.perPage")))
@@ -83,8 +76,29 @@ public class MattermostIntegrationTest {
         .excludedUsers(env.getProperty("apps[1].config.sync.excludedUsers"))
         .authService(env.getProperty("apps[1].config.auth.serviceName"))
         .authUidAttribute(env.getProperty("apps[1].config.auth.uidAttribute"));
-    Mattermost mattermost = mmBuilder.build();
+    mattermost = mmBuilder.build();
+  }
 
+  @Test
+  public void testSync() {
+    List<IdpGroup> groups = kcClient.getGroups(env.getProperty("apps[1].config.group.search"));
+    assertThat(groups).isNotNull().isNotEmpty();
+    for (IdpGroup group : groups) {
+      List<IdpUser> members = kcClient.getGroupMembers(group);
+      assertThat(members).isNotNull();
+      for (IdpUser member : members) {
+        member.addGroup(group);
+        group.addMember(member);
+      }
+    }
     assertTrue(mattermost.sync(groups));
+  }
+
+  @Test
+  public void testStatistics() {
+    List<AppStatistics> statisticsList = mattermost.getStatistics();
+    assertThat(statisticsList).isNotNull().isNotEmpty();
+    AppStatistics statistics = statisticsList.get(0);
+    assertThat(statistics.getStatistics()).isNotEmpty().containsKey("channels");
   }
 }

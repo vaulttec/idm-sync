@@ -17,10 +17,13 @@
  */
 package org.vaulttec.idm.sync.app.mattermost;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -28,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.AbstractApplication;
+import org.vaulttec.idm.sync.app.model.AppStatistics;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
 import org.vaulttec.idm.sync.idp.IdpUser;
@@ -297,5 +301,27 @@ public class Mattermost extends AbstractApplication {
         mmTeam.addMember(mmUser, teamRole);
       }
     }
+  }
+
+  @Override
+  public List<AppStatistics> getStatistics() {
+    List<AppStatistics> statistics = new ArrayList<>();
+    List<MMTeam> teams = client.getTeamsWithMembers();
+    for (MMTeam team : teams) {
+      List<MMTeamChannel> channels = client.getTeamChannels(team);
+      int messageCount = channels.stream().mapToInt(c -> c.getMessageCount()).sum();
+      Optional<MMTeamChannel> channelWithMostMessages = channels.stream()
+          .sorted(Comparator.comparing(MMTeamChannel::getMessageCount).reversed()).findFirst();
+      AppStatistics groupStatistics = new AppStatistics(team.getName());
+      groupStatistics.addStatistic("members", Integer.toString(team.getMembers().size()));
+      groupStatistics.addStatistic("channels", Integer.toString(channels.size()));
+      groupStatistics.addStatistic("channel_with_most_messages",
+          channelWithMostMessages.isPresent() && channelWithMostMessages.get().getMessageCount() > 0
+              ? channelWithMostMessages.get().getName()
+              : "");
+      groupStatistics.addStatistic("messages", Integer.toString(messageCount));
+      statistics.add(groupStatistics);
+    }
+    return statistics;
   }
 }

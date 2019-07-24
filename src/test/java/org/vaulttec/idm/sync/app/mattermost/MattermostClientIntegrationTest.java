@@ -138,4 +138,13 @@ public class MattermostClientIntegrationTest {
     assertTrue(client.updateUserActiveStatus(user, false));
     assertTrue(client.updateUserActiveStatus(user, true));
   }
+
+  @Test
+  public void testTeamChannels() {
+    List<MMTeam> teams = client.getTeamsWithMembers();
+    assertThat(teams).isNotNull().isNotEmpty();
+    MMTeam team = teams.get(0);
+    List<MMTeamChannel> channels = client.getTeamChannels(team);
+    assertThat(channels).isNotNull().isNotEmpty();
+  }
 }

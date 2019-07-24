@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
+import org.vaulttec.idm.sync.app.model.AppStatistics;
 import org.vaulttec.idm.sync.idp.IdpGroup;
 import org.vaulttec.idm.sync.idp.IdpUser;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClient;
@@ -45,9 +47,11 @@ public class GitLabIntegrationTest {
 
   @Autowired
   private Environment env;
+  private KeycloakClient kcClient;
+  private GitLab gitlab;
 
-  @Test
-  public void testSync() {
+  @Before
+  public void setup() {
     KeycloakClientBuilder kcBuilder = new KeycloakClientBuilder(env.getProperty("idp.config.serverUrl"))
         .realm(env.getProperty("idp.config.realm")).clientId(env.getProperty("idp.config.client.id"))
         .clientSecret(env.getProperty("idp.config.client.secret"));
@@ -55,19 +59,8 @@ public class GitLabIntegrationTest {
       kcBuilder = kcBuilder.proxyHost(env.getProperty("proxy.host"))
           .proxyPort(Integer.parseInt(env.getProperty("proxy.port")));
     }
-    KeycloakClient kcClient = kcBuilder.build();
-
+    kcClient = kcBuilder.build();
     assertTrue(kcClient.authenticate());
-    List<IdpGroup> groups = kcClient.getGroups(env.getProperty("apps[0].config.group.search"));
-    assertThat(groups).isNotNull();
-    for (IdpGroup group : groups) {
-      List<IdpUser> members = kcClient.getGroupMembers(group);
-      assertThat(members).isNotNull();
-      for (IdpUser member : members) {
-        member.addGroup(group);
-        group.addMember(member);
-      }
-    }
 
     GitLabClientBuilder glcBuilder = new GitLabClientBuilder(env.getProperty("apps[0].config.serverUrl"))
         .perPage(Integer.parseInt(env.getProperty("apps[0].config.perPage")))
@@ -84,8 +77,29 @@ public class GitLabIntegrationTest {
         .removeProjectMembers(Boolean.parseBoolean(env.getProperty("apps[0].config.sync.removeProjectMembers")))
         .providerName(env.getProperty("apps[0].config.provider.name"))
         .providerUidAttribute(env.getProperty("apps[0].config.provider.uidAttribute"));
-    GitLab gitlab = glBuilder.build();
+    gitlab = glBuilder.build();
+  }
 
+  @Test
+  public void testSync() {
+    List<IdpGroup> groups = kcClient.getGroups(env.getProperty("apps[0].config.group.search"));
+    assertThat(groups).isNotNull();
+    for (IdpGroup group : groups) {
+      List<IdpUser> members = kcClient.getGroupMembers(group);
+      assertThat(members).isNotNull();
+      for (IdpUser member : members) {
+        member.addGroup(group);
+        group.addMember(member);
+      }
+    }
     assertTrue(gitlab.sync(groups));
+  }
+
+  @Test
+  public void testStatistics() {
+    List<AppStatistics> statisticsList = gitlab.getStatistics();
+    assertThat(statisticsList).isNotNull().isNotEmpty();
+    AppStatistics statistics = statisticsList.get(0);
+    assertThat(statistics.getStatistics()).isNotEmpty().containsKey("repository_size");
   }
 }

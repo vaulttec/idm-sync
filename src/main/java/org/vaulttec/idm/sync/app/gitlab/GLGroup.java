@@ -36,6 +36,7 @@ public class GLGroup {
   private String name;
   private Map<String, GLUser> members = new HashMap<>();
   private MultiValueMap<GLPermission, GLUser> permissionedMembers = new LinkedMultiValueMap<>();
+  private Map<String, String> statistics = new HashMap<>();
 
   public String getId() {
     return id;
@@ -103,6 +104,14 @@ public class GLGroup {
 
   public List<GLUser> getMembersByPermission(GLPermission permission) {
     return permissionedMembers.get(permission);
+  }
+
+  public Map<String, String> getStatistics() {
+    return statistics;
+  }
+
+  public void setStatistics(Map<String, String> statistics) {
+    this.statistics = statistics;
   }
 
   @Override
