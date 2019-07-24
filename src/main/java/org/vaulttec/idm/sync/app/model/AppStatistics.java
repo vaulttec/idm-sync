@@ -20,6 +20,9 @@ package org.vaulttec.idm.sync.app.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
 public class AppStatistics {
 
   private final String organisationName;
@@ -34,10 +37,12 @@ public class AppStatistics {
     return organisationName;
   }
 
+  @JsonAnyGetter
   public Map<String, String> getStatistics() {
     return statistics;
   }
 
+  @JsonAnySetter
   public void addStatistic(String key, String value) {
     statistics.put(key, value);
   }
