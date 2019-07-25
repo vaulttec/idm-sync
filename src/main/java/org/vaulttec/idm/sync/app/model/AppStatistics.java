@@ -17,7 +17,7 @@
  */
 package org.vaulttec.idm.sync.app.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -30,7 +30,7 @@ public class AppStatistics {
 
   public AppStatistics(String organisationName) {
     this.organizationName = organisationName;
-    this.statistics = new HashMap<String, String>();
+    this.statistics = new LinkedHashMap<String, String>();
   }
 
   public String getOrganizationName() {
