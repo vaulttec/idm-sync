@@ -51,7 +51,7 @@ apps:
       personalAccessToken: ${gitlab.personalAccessToken}
       group:
         search: "%_GIT_%"
-        regExp: .*_GIT_(?<groupPath>\w*)_(?<permission>\w*)
+        regExp: .*_GIT_(?<groupPath>\w+)_(?<permission>\w+)
       sync:
         excludedUsers: root, ghost, gladmin
         removeProjectMembers: true
@@ -65,7 +65,7 @@ apps:
       personalAccessToken: ${mattermost.personalAccessToken}
       group:
         search: "%_GIT_%"
-        regExp: .*_GIT_(?<teamName>\w*)_(?<teamAdmin>Maintainer)?.*
+        regExp: .*_GIT_(?<teamName>\w+)_(?<teamAdmin>Maintainer)?.*
       sync:
         excludedUsers: mmadmin
       auth:
