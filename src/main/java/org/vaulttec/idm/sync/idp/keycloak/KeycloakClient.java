@@ -35,8 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.vaulttec.idm.sync.app.AbstractRestClient;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

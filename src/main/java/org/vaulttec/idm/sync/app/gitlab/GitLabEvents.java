@@ -19,6 +19,10 @@ package org.vaulttec.idm.sync.app.gitlab;
 
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.vaulttec.idm.sync.SyncEvents;
+import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
+import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
+import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
+import org.vaulttec.idm.sync.app.gitlab.model.GLUser;
 
 public abstract class GitLabEvents extends SyncEvents {
 

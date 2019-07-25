@@ -15,22 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.app.gitlab;
+package org.vaulttec.idm.sync.app.gitlab.model;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GLProject {
+public class GLGroup {
 
   private String id;
   private String path;
   private String name;
-  private String description;
   private Map<String, GLUser> members = new HashMap<>();
+  private MultiValueMap<GLPermission, GLUser> permissionedMembers = new LinkedMultiValueMap<>();
+  private Map<String, String> statistics = new HashMap<>();
 
   public String getId() {
     return id;
@@ -56,14 +62,6 @@ public class GLProject {
     this.name = name;
   }
 
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
   public boolean isMember(GLUser user) {
     return this.members.containsKey(user.getUsername());
   }
@@ -76,12 +74,44 @@ public class GLProject {
     return members.values();
   }
 
-  public void addMember(GLUser user) {
+  public void addMember(GLUser user, GLPermission permission) {
     GLUser member = members.get(user.getUsername());
     if (member == null) {
       member = user;
       this.members.put(member.getUsername(), member);
     }
+    this.permissionedMembers.add(permission, member);
+  }
+
+  public GLPermission getPermission(GLUser user) {
+    GLUser member = members.get(user.getUsername());
+    if (member != null) {
+      GLPermission found = null;
+      for (GLPermission permission : getPermissions()) {
+        if (getMembersByPermission(permission).contains(member)
+            && (found == null || permission.compareAccessLevel(found) > 0)) {
+          found = permission;
+        }
+      }
+      return found;
+    }
+    return null;
+  }
+
+  public Set<GLPermission> getPermissions() {
+    return permissionedMembers.keySet();
+  }
+
+  public List<GLUser> getMembersByPermission(GLPermission permission) {
+    return permissionedMembers.get(permission);
+  }
+
+  public Map<String, String> getStatistics() {
+    return statistics;
+  }
+
+  public void setStatistics(Map<String, String> statistics) {
+    this.statistics = statistics;
   }
 
   @Override
@@ -103,7 +133,7 @@ public class GLProject {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    GLProject other = (GLProject) obj;
+    GLGroup other = (GLGroup) obj;
     if (path == null) {
       if (other.path != null) {
         return false;

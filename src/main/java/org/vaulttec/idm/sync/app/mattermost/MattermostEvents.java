@@ -19,6 +19,9 @@ package org.vaulttec.idm.sync.app.mattermost;
 
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.vaulttec.idm.sync.SyncEvents;
+import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
+import org.vaulttec.idm.sync.app.mattermost.model.MMUser;
 
 public abstract class MattermostEvents extends SyncEvents {
 

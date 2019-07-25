@@ -32,6 +32,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.vaulttec.idm.sync.app.AbstractRestClient;
 import org.vaulttec.idm.sync.app.LinkHeader;
+import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
+import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
+import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
+import org.vaulttec.idm.sync.app.gitlab.model.GLState;
+import org.vaulttec.idm.sync.app.gitlab.model.GLUser;
 
 public class GitLabClient extends AbstractRestClient {
 

@@ -20,8 +20,8 @@ package org.vaulttec.idm.sync.app;
 import java.util.List;
 
 import org.vaulttec.idm.sync.app.model.AppStatistics;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpGroupRepresentation;
 
 public interface Application {
 

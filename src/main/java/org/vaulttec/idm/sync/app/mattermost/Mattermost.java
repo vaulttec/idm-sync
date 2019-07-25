@@ -31,10 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.AbstractApplication;
+import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeamChannel;
+import org.vaulttec.idm.sync.app.mattermost.model.MMUser;
 import org.vaulttec.idm.sync.app.model.AppStatistics;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpGroupRepresentation;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 import org.vaulttec.util.StringUtils;
 
 public class Mattermost extends AbstractApplication {

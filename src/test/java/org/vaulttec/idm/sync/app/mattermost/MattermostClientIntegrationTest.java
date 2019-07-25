@@ -37,6 +37,10 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
+import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeamChannel;
+import org.vaulttec.idm.sync.app.mattermost.model.MMUser;
 
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")

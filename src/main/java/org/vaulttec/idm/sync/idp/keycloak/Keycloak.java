@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.vaulttec.idm.sync.idp.IdentityProvider;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 public class Keycloak implements IdentityProvider {
 

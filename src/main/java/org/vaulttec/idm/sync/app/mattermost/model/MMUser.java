@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.app.mattermost;
+package org.vaulttec.idm.sync.app.mattermost.model;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -47,11 +47,11 @@ public class MMUser {
   private String deleteAt;
   private Map<String, MMTeam> teams = new HashMap<>();
 
-  MMUser() {
+  public MMUser() {
     this.idpUser = null;
   }
   
-  MMUser(IdpUser idpUser) {
+  public MMUser(IdpUser idpUser) {
     this.idpUser = idpUser;
   }
 

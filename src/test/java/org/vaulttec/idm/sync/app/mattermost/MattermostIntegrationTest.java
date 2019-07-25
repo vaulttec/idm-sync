@@ -35,10 +35,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
 import org.vaulttec.idm.sync.app.model.AppStatistics;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpUser;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClient;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClientBuilder;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")

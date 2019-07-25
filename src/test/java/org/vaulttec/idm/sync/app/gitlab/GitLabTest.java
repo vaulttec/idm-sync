@@ -35,8 +35,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
+import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
+import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
+import org.vaulttec.idm.sync.app.gitlab.model.GLState;
+import org.vaulttec.idm.sync.app.gitlab.model.GLUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 public class GitLabTest {
 

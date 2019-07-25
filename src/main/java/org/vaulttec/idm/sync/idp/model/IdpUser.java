@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.idp;
+package org.vaulttec.idm.sync.idp.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -15,40 +15,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.app.gitlab;
+package org.vaulttec.idm.sync.app.mattermost.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GLIdentity {
+public class MMTeamMember {
 
-  private String provider;
-  @JsonAlias("extern_uid")
-  private String externUid;
+  @JsonAlias("team_id")
+  private String teamId;
+  @JsonAlias("user_id")
+  private String userId;
+  private String roles;
 
-  public String getProvider() {
-    return provider;
+  public String getTeamId() {
+    return teamId;
   }
 
-  public void setProvider(String provider) {
-    this.provider = provider;
+  public void setTeamId(String teamId) {
+    this.teamId = teamId;
   }
 
-  public String getExternUid() {
-    return externUid;
+  public String getUserId() {
+    return userId;
   }
 
-  public void setExternUid(String externUid) {
-    this.externUid = externUid;
+  public void setUserId(String userId) {
+    this.userId = userId;
+  }
+
+  public String getRoles() {
+    return roles;
+  }
+
+  public void setRoles(String roles) {
+    this.roles = roles;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((externUid == null) ? 0 : externUid.hashCode());
-    result = prime * result + ((provider == null) ? 0 : provider.hashCode());
+    result = prime * result + ((teamId == null) ? 0 : teamId.hashCode());
+    result = prime * result + ((userId == null) ? 0 : userId.hashCode());
     return result;
   }
 
@@ -63,19 +73,19 @@ public class GLIdentity {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    GLIdentity other = (GLIdentity) obj;
-    if (externUid == null) {
-      if (other.externUid != null) {
+    MMTeamMember other = (MMTeamMember) obj;
+    if (teamId == null) {
+      if (other.teamId != null) {
         return false;
       }
-    } else if (!externUid.equals(other.externUid)) {
+    } else if (!teamId.equals(other.teamId)) {
       return false;
     }
-    if (provider == null) {
-      if (other.provider != null) {
+    if (userId == null) {
+      if (other.userId != null) {
         return false;
       }
-    } else if (!provider.equals(other.provider)) {
+    } else if (!userId.equals(other.userId)) {
       return false;
     }
     return true;
@@ -83,6 +93,6 @@ public class GLIdentity {
 
   @Override
   public String toString() {
-    return provider + "(" + externUid + ")";
+    return teamId + ": " + userId;
   }
 }

@@ -15,50 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.app.mattermost;
+package org.vaulttec.idm.sync.app.gitlab.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MMTeamMember {
+public class GLIdentity {
 
-  @JsonAlias("team_id")
-  private String teamId;
-  @JsonAlias("user_id")
-  private String userId;
-  private String roles;
+  private String provider;
+  @JsonAlias("extern_uid")
+  private String externUid;
 
-  public String getTeamId() {
-    return teamId;
+  public String getProvider() {
+    return provider;
   }
 
-  public void setTeamId(String teamId) {
-    this.teamId = teamId;
+  public void setProvider(String provider) {
+    this.provider = provider;
   }
 
-  public String getUserId() {
-    return userId;
+  public String getExternUid() {
+    return externUid;
   }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
-  }
-
-  public String getRoles() {
-    return roles;
-  }
-
-  public void setRoles(String roles) {
-    this.roles = roles;
+  public void setExternUid(String externUid) {
+    this.externUid = externUid;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((teamId == null) ? 0 : teamId.hashCode());
-    result = prime * result + ((userId == null) ? 0 : userId.hashCode());
+    result = prime * result + ((externUid == null) ? 0 : externUid.hashCode());
+    result = prime * result + ((provider == null) ? 0 : provider.hashCode());
     return result;
   }
 
@@ -73,19 +63,19 @@ public class MMTeamMember {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    MMTeamMember other = (MMTeamMember) obj;
-    if (teamId == null) {
-      if (other.teamId != null) {
+    GLIdentity other = (GLIdentity) obj;
+    if (externUid == null) {
+      if (other.externUid != null) {
         return false;
       }
-    } else if (!teamId.equals(other.teamId)) {
+    } else if (!externUid.equals(other.externUid)) {
       return false;
     }
-    if (userId == null) {
-      if (other.userId != null) {
+    if (provider == null) {
+      if (other.provider != null) {
         return false;
       }
-    } else if (!userId.equals(other.userId)) {
+    } else if (!provider.equals(other.provider)) {
       return false;
     }
     return true;
@@ -93,6 +83,6 @@ public class MMTeamMember {
 
   @Override
   public String toString() {
-    return teamId + ": " + userId;
+    return provider + "(" + externUid + ")";
   }
 }

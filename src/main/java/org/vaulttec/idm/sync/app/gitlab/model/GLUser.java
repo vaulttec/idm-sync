@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.app.gitlab;
+package org.vaulttec.idm.sync.app.gitlab.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -44,11 +44,11 @@ public class GLUser {
   private List<GLIdentity> identities;
   private Map<String, GLGroup> groups = new HashMap<>();
 
-  GLUser() {
+  public GLUser() {
     this.idpUser = null;
   }
 
-  GLUser(IdpUser idpUser) {
+  public GLUser(IdpUser idpUser) {
     this.idpUser = idpUser;
   }
 

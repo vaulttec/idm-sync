@@ -20,6 +20,9 @@ package org.vaulttec.idm.sync.idp;
 import java.util.List;
 import java.util.Map;
 
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
+
 public interface IdentityProvider {
 
   String getId();

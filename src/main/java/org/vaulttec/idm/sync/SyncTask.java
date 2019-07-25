@@ -28,8 +28,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.vaulttec.idm.sync.app.Application;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 import org.vaulttec.util.StringUtils;
 
 @Component

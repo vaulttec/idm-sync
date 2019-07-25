@@ -38,8 +38,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.gitlab.GitLab;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
+import org.vaulttec.idm.sync.app.mattermost.model.MMUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MattermostTest {

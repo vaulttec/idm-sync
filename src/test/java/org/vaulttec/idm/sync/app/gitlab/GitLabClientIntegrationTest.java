@@ -34,6 +34,12 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
+import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
+import org.vaulttec.idm.sync.app.gitlab.model.GLIdentity;
+import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
+import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
+import org.vaulttec.idm.sync.app.gitlab.model.GLState;
+import org.vaulttec.idm.sync.app.gitlab.model.GLUser;
 
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")

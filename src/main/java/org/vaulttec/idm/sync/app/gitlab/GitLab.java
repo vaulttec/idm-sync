@@ -30,10 +30,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.AbstractApplication;
+import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
+import org.vaulttec.idm.sync.app.gitlab.model.GLIdentity;
+import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
+import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
+import org.vaulttec.idm.sync.app.gitlab.model.GLState;
+import org.vaulttec.idm.sync.app.gitlab.model.GLUser;
 import org.vaulttec.idm.sync.app.model.AppStatistics;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpGroupRepresentation;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 import org.vaulttec.util.StringUtils;
 
 public class GitLab extends AbstractApplication {

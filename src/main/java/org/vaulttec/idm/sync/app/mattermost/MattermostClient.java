@@ -31,6 +31,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.vaulttec.idm.sync.app.AbstractRestClient;
+import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeamChannel;
+import org.vaulttec.idm.sync.app.mattermost.model.MMTeamMember;
+import org.vaulttec.idm.sync.app.mattermost.model.MMUser;
 
 public class MattermostClient extends AbstractRestClient {
 

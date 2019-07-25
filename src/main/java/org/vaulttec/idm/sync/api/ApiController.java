@@ -39,9 +39,9 @@ import org.vaulttec.idm.sync.app.model.AppOrganization;
 import org.vaulttec.idm.sync.app.model.AppStatistics;
 import org.vaulttec.idm.sync.app.model.AppUser;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
-import org.vaulttec.idm.sync.idp.IdpGroup;
-import org.vaulttec.idm.sync.idp.IdpGroupRepresentation;
-import org.vaulttec.idm.sync.idp.IdpUser;
+import org.vaulttec.idm.sync.idp.model.IdpGroup;
+import org.vaulttec.idm.sync.idp.model.IdpGroupRepresentation;
+import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 @RestController
 @RequestMapping("/api")

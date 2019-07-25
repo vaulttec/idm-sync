@@ -1,6 +1,6 @@
 /*
  * IDM Syncronizer
- * Copyright (c) 2018 Torsten Juergeleit
+ * Copyright (c) 2019 Torsten Juergeleit
  * mailto:torsten AT vaulttec DOT org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,23 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.idp;
+package org.vaulttec.idm.sync.app.mattermost.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class IdpGroup {
+public class MMTeamChannel {
 
   private String id;
   private String name;
-  private String path;
-  private Map<String, List<String>> attributes = new HashMap<>();
-  private List<IdpUser> members = new ArrayList<>();
+  @JsonProperty("last_post_at")
+  private Date lastPostAt;
+  @JsonProperty("total_msg_count")
+  private int messageCount;
 
   public String getId() {
     return id;
@@ -49,40 +48,27 @@ public class IdpGroup {
     this.name = name;
   }
 
-  public String getPath() {
-    return path;
+  public Date getLastPostAt() {
+    return lastPostAt;
   }
 
-  public void setPath(String path) {
-    this.path = path;
+  public void setLastPostAt(Date lastPostAt) {
+    this.lastPostAt = lastPostAt;
   }
 
-  public Map<String, List<String>> getAttributes() {
-    return attributes;
+  public int getMessageCount() {
+    return messageCount;
   }
 
-  public String getAttribute(String name) {
-    List<String> values = attributes.get(name);
-    return values != null && !values.isEmpty() ? values.get(0) : null;
-  }
-
-  public void setAttributes(Map<String, List<String>> attributes) {
-    this.attributes = attributes;
-  }
-
-  public List<IdpUser> getMembers() {
-    return members;
-  }
-
-  public void addMember(IdpUser member) {
-    this.members.add(member);
+  public void setMessageCount(int messageCount) {
+    this.messageCount = messageCount;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((path == null) ? 0 : path.hashCode());
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
     return result;
   }
 
@@ -97,12 +83,12 @@ public class IdpGroup {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    IdpGroup other = (IdpGroup) obj;
-    if (path == null) {
-      if (other.path != null) {
+    MMTeamChannel other = (MMTeamChannel) obj;
+    if (id == null) {
+      if (other.id!= null) {
         return false;
       }
-    } else if (!path.equals(other.path)) {
+    } else if (!id.equals(other.id)) {
       return false;
     }
     return true;
@@ -110,6 +96,6 @@ public class IdpGroup {
 
   @Override
   public String toString() {
-    return path + "(" + members.size() + ")";
+    return name + "(" + messageCount + ")";
   }
 }
