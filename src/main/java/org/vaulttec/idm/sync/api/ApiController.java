@@ -59,7 +59,8 @@ public class ApiController {
 
   @GetMapping("/applications")
   public @ResponseBody List<AppApplication> applications() {
-    return applications.stream().map(a -> new AppApplication(a.getId(), a.getName())).collect(Collectors.toList());
+    return applications.stream().map(a -> new AppApplication(a.getId(), a.getName(), a.getOrganizationType()))
+        .collect(Collectors.toList());
   }
 
   @GetMapping("/{appId}/organizations")
@@ -86,10 +87,10 @@ public class ApiController {
     List<IdpGroup> groups = idp.getGroups(application.getGroupSearch());
     groups.forEach(g -> {
       IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(g);
-      if (search == null || groupRepresentation.getName().contains(search)) {
-        AppOrganization organization = organizations.get(groupRepresentation.getName());
+      if (search == null || groupRepresentation.getOrganizationName().contains(search)) {
+        AppOrganization organization = organizations.get(groupRepresentation.getOrganizationName());
         if (organization == null) {
-          organization = new AppOrganization(groupRepresentation.getName());
+          organization = new AppOrganization(groupRepresentation.getOrganizationName());
           organizations.put(organization.getName(), organization);
         }
         organization.addRole(groupRepresentation.getRole());
@@ -114,7 +115,7 @@ public class ApiController {
     List<IdpGroup> orgGroups = new ArrayList<IdpGroup>();
     groups.forEach(g -> {
       IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(g);
-      if (orgName.equals(groupRepresentation.getName())) {
+      if (orgName.equals(groupRepresentation.getOrganizationName())) {
         orgGroups.add(g);
       }
     });
@@ -132,7 +133,7 @@ public class ApiController {
             users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
           }
           AppUser user = users.get(member.getUsername());
-          user.addOrganization(new AppOrganization(groupRepresentation.getName(), groupRepresentation.getRole()));
+          user.addOrganization(new AppOrganization(groupRepresentation.getOrganizationName(), groupRepresentation.getRole()));
         }
       }
     }
@@ -174,7 +175,7 @@ public class ApiController {
               users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
             }
             AppUser user = users.get(member.getUsername());
-            user.addOrganization(new AppOrganization(groupRepresentation.getName(), groupRepresentation.getRole()));
+            user.addOrganization(new AppOrganization(groupRepresentation.getOrganizationName(), groupRepresentation.getRole()));
           }
         }
       }

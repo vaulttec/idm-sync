@@ -25,16 +25,16 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public class AppStatistics {
 
-  private final String organisationName;
+  private final String organizationName;
   private final Map<String, String> statistics;
 
   public AppStatistics(String organisationName) {
-    this.organisationName = organisationName;
+    this.organizationName = organisationName;
     this.statistics = new HashMap<String, String>();
   }
 
-  public String getOrganisationName() {
-    return organisationName;
+  public String getOrganizationName() {
+    return organizationName;
   }
 
   @JsonAnyGetter
@@ -55,7 +55,7 @@ public class AppStatistics {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((organisationName == null) ? 0 : organisationName.hashCode());
+    result = prime * result + ((organizationName == null) ? 0 : organizationName.hashCode());
     return result;
   }
 
@@ -68,16 +68,16 @@ public class AppStatistics {
     if (getClass() != obj.getClass())
       return false;
     AppStatistics other = (AppStatistics) obj;
-    if (organisationName == null) {
-      if (other.organisationName != null)
+    if (organizationName == null) {
+      if (other.organizationName != null)
         return false;
-    } else if (!organisationName.equals(other.organisationName))
+    } else if (!organizationName.equals(other.organizationName))
       return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return organisationName + " " + statistics;
+    return organizationName + " " + statistics;
   }
 }

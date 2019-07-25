@@ -70,6 +70,11 @@ public class Mattermost extends AbstractApplication {
   }
 
   @Override
+  public String getOrganizationType() {
+    return "team";
+  }
+
+  @Override
   public IdpGroupRepresentation getGroupRepresentation(IdpGroup group) {
     if (group != null) {
       Matcher matcher = getGroupNameMatcher(group.getName());
@@ -83,7 +88,7 @@ public class Mattermost extends AbstractApplication {
         // ignore missing teamAdmin matching group
       }
       if (teamName != null) {
-        return new IdpGroupRepresentation("Team", teamName, teamRole.name());
+        return new IdpGroupRepresentation(teamName, teamRole.name());
       }
     }
     return null;

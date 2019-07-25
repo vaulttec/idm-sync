@@ -18,31 +18,24 @@
 package org.vaulttec.idm.sync.idp;
 
 /**
- * Representation of the application-specific information encoded in an IdP group
- * name:
+ * Representation of the application-specific information encoded in an IdP
+ * group name:
  * <ul>
- * <li><code>type</code>: 'group' for Gitlab or 'team' for Mattermost
- * <li><code>name</code>: name of GitLab group or Mattermost team
+ * <li><code>organizationName</code>: name of GitLab group or Mattermost team
  * <li><code>role</code>: permission in GitLab group or role in Mattermost team
  */
 public class IdpGroupRepresentation {
 
-  private String type;
-  private String name;
+  private String organizationName;
   private String role;
 
-  public IdpGroupRepresentation(String type, String name, String role) {
-    this.type = type;
-    this.name = name;
+  public IdpGroupRepresentation(String name, String role) {
+    this.organizationName = name;
     this.role = role;
   }
 
-  public String getType() {
-    return type;
-  }
-
-  public String getName() {
-    return name;
+  public String getOrganizationName() {
+    return organizationName;
   }
 
   public String getRole() {
@@ -51,6 +44,6 @@ public class IdpGroupRepresentation {
 
   @Override
   public String toString() {
-    return type + " \"" + name + "\" (" + role + ")";
+    return organizationName + ": " + role;
   }
 }

@@ -29,6 +29,8 @@ public interface Application {
 
   String getName();
 
+  String getOrganizationType();
+
   String getGroupSearch();
 
   IdpGroupRepresentation getGroupRepresentation(IdpGroup group);

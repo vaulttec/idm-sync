@@ -21,10 +21,12 @@ public class AppApplication {
 
   private final String id;
   private final String name;
+  private final String organizationType;
 
-  public AppApplication(String id, String name) {
+  public AppApplication(String id, String name, String organizationType) {
     this.id = id;
     this.name = name;
+    this.organizationType = organizationType;
   }
 
   public String getId() {
@@ -33,6 +35,10 @@ public class AppApplication {
 
   public String getName() {
     return name;
+  }
+
+  public String getOrganizationType() {
+    return organizationType;
   }
 
   @Override
