@@ -87,13 +87,15 @@ public class ApiController {
     List<IdpGroup> groups = idp.getGroups(application.getGroupSearch());
     groups.forEach(g -> {
       IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(g);
-      if (search == null || groupRepresentation.getOrganizationName().contains(search)) {
-        AppOrganization organization = organizations.get(groupRepresentation.getOrganizationName());
-        if (organization == null) {
-          organization = new AppOrganization(groupRepresentation.getOrganizationName());
-          organizations.put(organization.getName(), organization);
+      if (groupRepresentation != null) {
+        if (search == null || groupRepresentation.getOrganizationName().contains(search)) {
+          AppOrganization organization = organizations.get(groupRepresentation.getOrganizationName());
+          if (organization == null) {
+            organization = new AppOrganization(groupRepresentation.getOrganizationName());
+            organizations.put(organization.getName(), organization);
+          }
+          organization.addRole(groupRepresentation.getRole());
         }
-        organization.addRole(groupRepresentation.getRole());
       }
     });
     return organizations;
@@ -115,7 +117,7 @@ public class ApiController {
     List<IdpGroup> orgGroups = new ArrayList<IdpGroup>();
     groups.forEach(g -> {
       IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(g);
-      if (orgName.equals(groupRepresentation.getOrganizationName())) {
+      if (groupRepresentation != null && groupRepresentation.getOrganizationName().equals(orgName)) {
         orgGroups.add(g);
       }
     });
@@ -126,14 +128,17 @@ public class ApiController {
     Map<String, AppUser> users = new HashMap<String, AppUser>();
     for (IdpGroup group : groups) {
       IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(group);
-      List<IdpUser> members = idp.getGroupMembers(group);
-      if (members != null) {
-        for (IdpUser member : members) {
-          if (!users.containsKey(member.getUsername())) {
-            users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
+      if (groupRepresentation != null) {
+        List<IdpUser> members = idp.getGroupMembers(group);
+        if (members != null) {
+          for (IdpUser member : members) {
+            if (!users.containsKey(member.getUsername())) {
+              users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
+            }
+            AppUser user = users.get(member.getUsername());
+            user.addOrganization(
+                new AppOrganization(groupRepresentation.getOrganizationName(), groupRepresentation.getRole()));
           }
-          AppUser user = users.get(member.getUsername());
-          user.addOrganization(new AppOrganization(groupRepresentation.getOrganizationName(), groupRepresentation.getRole()));
         }
       }
     }
@@ -167,15 +172,18 @@ public class ApiController {
     List<IdpGroup> groups = idp.getGroups(application.getGroupSearch());
     for (IdpGroup group : groups) {
       IdpGroupRepresentation groupRepresentation = application.getGroupRepresentation(group);
-      List<IdpUser> members = idp.getGroupMembers(group);
-      if (members != null) {
-        for (IdpUser member : members) {
-          if (search == null || member.getUsername().contains(search)) {
-            if (!users.containsKey(member.getUsername())) {
-              users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
+      if (groupRepresentation != null) {
+        List<IdpUser> members = idp.getGroupMembers(group);
+        if (members != null) {
+          for (IdpUser member : members) {
+            if (search == null || member.getUsername().contains(search)) {
+              if (!users.containsKey(member.getUsername())) {
+                users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
+              }
+              AppUser user = users.get(member.getUsername());
+              user.addOrganization(
+                  new AppOrganization(groupRepresentation.getOrganizationName(), groupRepresentation.getRole()));
             }
-            AppUser user = users.get(member.getUsername());
-            user.addOrganization(new AppOrganization(groupRepresentation.getOrganizationName(), groupRepresentation.getRole()));
           }
         }
       }

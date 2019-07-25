@@ -41,10 +41,6 @@ public abstract class AbstractApplication extends AbstractSyncEventPublisher imp
 
   protected Matcher getGroupNameMatcher(String groupName) {
     Matcher m = groupPattern.matcher(groupName);
-    if (!m.find()) {
-      throw new IllegalStateException(
-          "Group regexp '" + groupPattern.pattern() + "' does not match group name '" + groupName + "'");
-    }
-    return m;
+    return m.find() ? m : null;
   }
 }

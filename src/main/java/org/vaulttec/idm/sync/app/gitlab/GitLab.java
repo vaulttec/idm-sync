@@ -85,10 +85,12 @@ public class GitLab extends AbstractApplication {
   public IdpGroupRepresentation getGroupRepresentation(IdpGroup group) {
     if (group != null) {
       Matcher matcher = getGroupNameMatcher(group.getName());
-      String groupPath = matcher.group("groupPath");
-      String permissionName = matcher.group("permission");
-      if (groupPath != null && permissionName != null) {
-        return new IdpGroupRepresentation(groupPath, permissionName);
+      if (matcher != null) {
+        String groupPath = matcher.group("groupPath");
+        String permissionName = matcher.group("permission");
+        if (groupPath != null && permissionName != null) {
+          return new IdpGroupRepresentation(groupPath, permissionName);
+        }
       }
     }
     return null;
@@ -315,44 +317,46 @@ public class GitLab extends AbstractApplication {
     for (IdpGroup idpGroup : idpGroups) {
       LOG.debug("Converting IDP group '{}'", idpGroup.getPath());
       Matcher matcher = getGroupNameMatcher(idpGroup.getName());
-      String groupPath = matcher.group("groupPath");
-      String permissionName = matcher.group("permission");
-      LOG.debug("Extracted GitLab information from IDP group: groupPath={}, permissionName={}", groupPath,
-          permissionName);
-      if (groupPath == null) {
-        throw new IllegalStateException("Could not extract GitLab group path from IDP group");
-      }
-      if (permissionName == null) {
-        throw new IllegalStateException("Could not extract GitLab permission name from IDP group");
-      }
-
-      GLGroup glGroup = glGroups.get(groupPath);
-      if (glGroup == null) {
-        glGroup = new GLGroup();
-        glGroup.setPath(groupPath);
-        glGroups.put(groupPath, glGroup);
-      }
-
-      GLPermission permission = GLPermission.fromName(permissionName);
-      if (permission == null) {
-        throw new IllegalStateException("Unsupported GitLab permission '" + permissionName + "'");
-      }
-      for (IdpUser idpUser : idpGroup.getMembers()) {
-        GLUser glUser = glUsers.get(idpUser.getUsername());
-        if (glUser == null) {
-          String externUid = idpUser.getAttribute(providerUidAttribute);
-          LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), externUid);
-          glUser = new GLUser(idpUser);
-          glUser.setUsername(idpUser.getUsername());
-          glUser.setName(idpUser.getName());
-          glUser.setEmail(idpUser.getEmail());
-          glUser.setPermission(permission);
-          glUser.setProvider(providerName);
-          glUser.setExternUid(externUid);
-          glUsers.put(idpUser.getUsername(), glUser);
+      if (matcher != null) {
+        String groupPath = matcher.group("groupPath");
+        String permissionName = matcher.group("permission");
+        LOG.debug("Extracted GitLab information from IDP group: groupPath={}, permissionName={}", groupPath,
+            permissionName);
+        if (groupPath == null) {
+          throw new IllegalStateException("Could not extract GitLab group path from IDP group");
         }
-        glUser.addGroup(glGroup);
-        glGroup.addMember(glUser, permission);
+        if (permissionName == null) {
+          throw new IllegalStateException("Could not extract GitLab permission name from IDP group");
+        }
+
+        GLGroup glGroup = glGroups.get(groupPath);
+        if (glGroup == null) {
+          glGroup = new GLGroup();
+          glGroup.setPath(groupPath);
+          glGroups.put(groupPath, glGroup);
+        }
+
+        GLPermission permission = GLPermission.fromName(permissionName);
+        if (permission == null) {
+          throw new IllegalStateException("Unsupported GitLab permission '" + permissionName + "'");
+        }
+        for (IdpUser idpUser : idpGroup.getMembers()) {
+          GLUser glUser = glUsers.get(idpUser.getUsername());
+          if (glUser == null) {
+            String externUid = idpUser.getAttribute(providerUidAttribute);
+            LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), externUid);
+            glUser = new GLUser(idpUser);
+            glUser.setUsername(idpUser.getUsername());
+            glUser.setName(idpUser.getName());
+            glUser.setEmail(idpUser.getEmail());
+            glUser.setPermission(permission);
+            glUser.setProvider(providerName);
+            glUser.setExternUid(externUid);
+            glUsers.put(idpUser.getUsername(), glUser);
+          }
+          glUser.addGroup(glGroup);
+          glGroup.addMember(glUser, permission);
+        }
       }
     }
   }

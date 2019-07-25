@@ -82,17 +82,19 @@ public class Mattermost extends AbstractApplication {
   public IdpGroupRepresentation getGroupRepresentation(IdpGroup group) {
     if (group != null) {
       Matcher matcher = getGroupNameMatcher(group.getName());
-      String teamName = matcher.group("teamName");
-      MMRole teamRole = MMRole.TEAM_USER;
-      try {
-        if (matcher.group("teamAdmin") != null) {
-          teamRole = MMRole.TEAM_ADMIN;
+      if (matcher != null) {
+        String teamName = matcher.group("teamName");
+        MMRole teamRole = MMRole.TEAM_USER;
+        try {
+          if (matcher.group("teamAdmin") != null) {
+            teamRole = MMRole.TEAM_ADMIN;
+          }
+        } catch (IllegalArgumentException e) {
+          // ignore missing teamAdmin matching group
         }
-      } catch (IllegalArgumentException e) {
-        // ignore missing teamAdmin matching group
-      }
-      if (teamName != null) {
-        return new IdpGroupRepresentation(teamName, teamRole.name());
+        if (teamName != null) {
+          return new IdpGroupRepresentation(teamName, teamRole.name());
+        }
       }
     }
     return null;
