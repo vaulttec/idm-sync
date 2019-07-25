@@ -1,6 +1,17 @@
 spring:
   application:
     name: idm-sync
+  mvc:
+    contentnegotiation:
+      media-types:
+        json: application/json
+        yaml: application/yaml
+        csv: text/csv
+      favor-path-extension: true
+    pathmatch:
+      use-registered-suffix-pattern: true
+  jackson:
+    property-naming-strategy: CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
   main:
     banner-mode: "off"
 
@@ -61,3 +72,6 @@ apps:
         serviceName: gitlab
         uidAttribute: GITLAB_USER_ID
       perPage: 100
+
+api:
+  csvSeparator: ";"

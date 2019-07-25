@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -127,18 +128,19 @@ public class ApiController {
       List<IdpUser> members = idp.getGroupMembers(group);
       if (members != null) {
         for (IdpUser member : members) {
-            if (!users.containsKey(member.getUsername())) {
-              users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
-            }
-            AppUser user = users.get(member.getUsername());
-            user.addOrganization(new AppOrganization(groupRepresentation.getName(), groupRepresentation.getRole()));
+          if (!users.containsKey(member.getUsername())) {
+            users.put(member.getUsername(), new AppUser(member.getUsername(), member.getName()));
           }
+          AppUser user = users.get(member.getUsername());
+          user.addOrganization(new AppOrganization(groupRepresentation.getName(), groupRepresentation.getRole()));
+        }
       }
     }
     return users;
   }
 
-  @GetMapping("/{appId}/statistics")
+  @GetMapping(path = "/{appId}/statistics", produces = { MediaType.APPLICATION_JSON_VALUE,
+      ApiConfig.MEDIA_TYPE_CSV_VALUE })
   public @ResponseBody List<AppStatistics> getOrganizationsStatistics(@PathVariable("appId") String appId) {
     Application application = getApplication(appId);
     LOG.debug("Getting statistics for application '{}'", application.getName());
