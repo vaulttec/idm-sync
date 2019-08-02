@@ -127,8 +127,7 @@ public class GitLabClientIntegrationTest {
     assertThat(client.getUsers("x000042")).isNotNull();
     assertThat(client.deleteUser(user, true)).isTrue();
     List<GLUser> users = client.getUsers("x000042");
-    assertThat(user).isNotNull();
-    assertThat(users.size()).isEqualTo(1);
+    assertThat(users).isNotNull().hasSize(1);
     assertThat(users.get(0).getState()).isEqualTo(GLState.BLOCKED);
   }
 
