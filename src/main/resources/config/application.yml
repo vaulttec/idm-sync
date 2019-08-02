@@ -13,7 +13,7 @@ spring:
   jackson:
     property-naming-strategy: CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
   main:
-    banner-mode: "off"
+    banner-mode: 'OFF'
 
 logging:
   file:
@@ -50,8 +50,8 @@ apps:
       serverUrl: ${gitlab.serverUrl}
       personalAccessToken: ${gitlab.personalAccessToken}
       group:
-        search: "%_GIT_%"
-        regExp: .*_GIT_(?<groupPath>\w+)_(?<permission>\w+)
+        search: '%_GIT_%'
+        regExp: '^.*_GIT_(?<groupPath>[\w-]+)_(?<permission>\w+)$'
       sync:
         excludedUsers: root, ghost, gladmin
         removeProjectMembers: true
@@ -64,8 +64,8 @@ apps:
       serverUrl: ${mattermost.serverUrl}
       personalAccessToken: ${mattermost.personalAccessToken}
       group:
-        search: "%_GIT_%"
-        regExp: .*_GIT_(?<teamName>\w+)_(?<teamAdmin>Maintainer)?.*
+        search: '%_GIT_%'
+        regExp: '^.*_GIT_(?<teamName>[\w-]+)_(?<teamAdmin>Maintainer)?.*$'
       sync:
         excludedUsers: mmadmin
       auth:
@@ -74,4 +74,4 @@ apps:
       perPage: 100
 
 api:
-  csvSeparator: ";"
+  csvSeparator: ';'
