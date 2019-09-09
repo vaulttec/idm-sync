@@ -274,42 +274,44 @@ public class Mattermost extends AbstractApplication {
     for (IdpGroup idpGroup : idpGroups) {
       LOG.debug("Converting IDP group '{}'", idpGroup.getPath());
       Matcher matcher = getGroupNameMatcher(idpGroup.getName());
-      String teamName = matcher.group("teamName");
-      MMRole teamRole = MMRole.TEAM_USER;
-      try {
-        if (matcher.group("teamAdmin") != null) {
-          teamRole = MMRole.TEAM_ADMIN;
+      if (matcher != null) {
+        String teamName = matcher.group("teamName");
+        MMRole teamRole = MMRole.TEAM_USER;
+        try {
+          if (matcher.group("teamAdmin") != null) {
+            teamRole = MMRole.TEAM_ADMIN;
+          }
+        } catch (IllegalArgumentException e) {
+          // ignore missing teamAdmin matching group
         }
-      } catch (IllegalArgumentException e) {
-        // ignore missing teamAdmin matching group
-      }
-      LOG.debug("Extracted Mattermost information from IDP group: teamName={}, teamRole={}", teamName, teamRole);
-      if (teamName == null) {
-        throw new IllegalStateException("Could not extract Mattermost team path from IDP group");
-      }
-
-      MMTeam mmTeam = mmTeams.get(teamName);
-      if (mmTeam == null) {
-        mmTeam = new MMTeam();
-        mmTeam.setName(teamName);
-        mmTeams.put(teamName, mmTeam);
-      }
-
-      for (IdpUser idpUser : idpGroup.getMembers()) {
-        MMUser mmUser = mmUsers.get(idpUser.getUsername());
-        if (mmUser == null) {
-          LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), idpUser.getAttribute(authUidAttribute));
-          mmUser = new MMUser(idpUser);
-          mmUser.setUsername(idpUser.getUsername());
-          mmUser.setFirstName(idpUser.getFirstName());
-          mmUser.setLastName(idpUser.getLastName());
-          mmUser.setEmail(idpUser.getEmail());
-          mmUser.setAuthService(authService);
-          mmUser.setAuthData(idpUser.getAttribute(authUidAttribute));
-          mmUsers.put(idpUser.getUsername(), mmUser);
+        LOG.debug("Extracted Mattermost information from IDP group: teamName={}, teamRole={}", teamName, teamRole);
+        if (teamName == null) {
+          throw new IllegalStateException("Could not extract Mattermost team path from IDP group");
         }
-        mmUser.addTeam(mmTeam);
-        mmTeam.addMember(mmUser, teamRole);
+
+        MMTeam mmTeam = mmTeams.get(teamName);
+        if (mmTeam == null) {
+          mmTeam = new MMTeam();
+          mmTeam.setName(teamName);
+          mmTeams.put(teamName, mmTeam);
+        }
+
+        for (IdpUser idpUser : idpGroup.getMembers()) {
+          MMUser mmUser = mmUsers.get(idpUser.getUsername());
+          if (mmUser == null) {
+            LOG.debug("Converting IDP user '{} ({})'", idpUser.getUsername(), idpUser.getAttribute(authUidAttribute));
+            mmUser = new MMUser(idpUser);
+            mmUser.setUsername(idpUser.getUsername());
+            mmUser.setFirstName(idpUser.getFirstName());
+            mmUser.setLastName(idpUser.getLastName());
+            mmUser.setEmail(idpUser.getEmail());
+            mmUser.setAuthService(authService);
+            mmUser.setAuthData(idpUser.getAttribute(authUidAttribute));
+            mmUsers.put(idpUser.getUsername(), mmUser);
+          }
+          mmUser.addTeam(mmTeam);
+          mmTeam.addMember(mmUser, teamRole);
+        }
       }
     }
   }
