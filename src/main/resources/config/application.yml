@@ -50,7 +50,7 @@ apps:
       serverUrl: ${gitlab.serverUrl}
       personalAccessToken: ${gitlab.personalAccessToken}
       group:
-        search: '%_GIT_%'
+        search: '%\_GIT\_%'
         regExp: '^.*_GIT_(?<groupPath>[\w-]+)_(?<permission>\w+)$'
       sync:
         excludedUsers: root, ghost, gladmin
@@ -64,7 +64,7 @@ apps:
       serverUrl: ${mattermost.serverUrl}
       personalAccessToken: ${mattermost.personalAccessToken}
       group:
-        search: '%_GIT_%'
+        search: '%\_GIT\_%'
         regExp: '^.*_GIT_(?<teamName>[\w-]+)_(?<teamAdmin>Maintainer)?.*$'
       sync:
         excludedUsers: mmadmin
