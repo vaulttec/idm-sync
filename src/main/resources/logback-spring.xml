@@ -23,18 +23,15 @@
 		<appender name="ROLLING-FILE-AUDIT"
 			class="ch.qos.logback.core.rolling.RollingFileAppender">
 			<encoder>
-				<pattern>%m%n%wEx</pattern>
+				<pattern>%m</pattern>
 			</encoder>
 			<file>${AUDIT_LOG_FILE}</file>
 			<rollingPolicy
-				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 				<fileNamePattern>${AUDIT_LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
 				</fileNamePattern>
-				<maxHistory>0</maxHistory>
-				<timeBasedFileNamingAndTriggeringPolicy
-					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-					<maxFileSize>10MB</maxFileSize>
-				</timeBasedFileNamingAndTriggeringPolicy>
+				<maxFileSize>${AUDIT_LOG_FILE_MAX_SIZE:-100MB}</maxFileSize>
+				<maxHistory>${AUDIT_LOG_FILE_MAX_HISTORY:-0}</maxHistory>
 			</rollingPolicy>
 		</appender>
 
