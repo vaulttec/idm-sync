@@ -579,7 +579,7 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
-    when(client.getProjectsFromGroup(glGroup, null)).thenReturn(glProjects);
+    when(client.getProjectsFromGroup(glGroup, null, false)).thenReturn(glProjects);
     when(client.getProjectUsers(glProject)).thenReturn(glProjectUsers);
 
     IdpUser idpUser = new IdpUser();
@@ -615,7 +615,7 @@ public class GitLabTest {
     verify(client, never()).removeMemberFromGroup(glGroup, glUser);
     verify(client).blockUser(glUser2);
     verify(client, never()).unblockUser(glUser);
-    verify(client).getProjectsFromGroup(glGroup, null);
+    verify(client).getProjectsFromGroup(glGroup, null, false);
     verify(client).getProjectUsers(glProject);
     verify(client).removeMemberFromProject(glProject, glUser2);
 

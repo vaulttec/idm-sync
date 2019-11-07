@@ -294,7 +294,7 @@ public class GitLab extends AbstractApplication {
   }
 
   protected void syncProjects(GLGroup group, Map<String, GLUser> syncedUsers) {
-    List<GLProject> sourceProjects = client.getProjectsFromGroup(group, null);
+    List<GLProject> sourceProjects = client.getProjectsFromGroup(group, null, false);
     if (sourceProjects != null) {
       for (GLProject project : sourceProjects) {
         LOG.debug("Syncing user of project '{}'", project.getPath());

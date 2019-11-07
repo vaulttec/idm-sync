@@ -96,7 +96,7 @@ public class GitLabClientIntegrationTest {
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
       LOG.info("{}:", group.getName());
-      List<GLProject> projects = client.getProjectsFromGroup(group, null);
+      List<GLProject> projects = client.getProjectsFromGroup(group, null, false);
       assertThat(projects).isNotNull();
       for (GLProject project : projects) {
         LOG.info("   {}", project.getName());
@@ -110,7 +110,7 @@ public class GitLabClientIntegrationTest {
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
       LOG.info("{}:", group.getName());
-      List<GLProject> projects = client.getProjectsFromGroup(group, null);
+      List<GLProject> projects = client.getProjectsFromGroup(group, null, false);
       assertThat(projects).isNotNull();
       for (GLProject project : projects) {
         List<GLUser> users = client.getProjectUsers(project);

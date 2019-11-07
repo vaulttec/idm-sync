@@ -256,15 +256,16 @@ public class GitLabClient extends AbstractRestClient {
     return makeWriteApiCall(apiCall, HttpMethod.DELETE, uriVariables);
   }
 
-  public List<GLProject> getProjectsFromGroup(GLGroup group, String search) {
+  public List<GLProject> getProjectsFromGroup(GLGroup group, String search, boolean withShared) {
     if (group == null || !StringUtils.hasText(group.getId())) {
       throw new IllegalStateException("GitLab group with valid ID required");
     }
-    LOG.debug("Retrieving projects from group '{}': search={}", group.getName(), search);
-    String apiCall = "/groups/{groupId}/projects";
-    Map<String, String> uriVariables = createUriVariables("groupId", group.getId());
+    LOG.debug("Retrieving projects from group '{}': search={}, withShared={}", group.getName(), search, withShared);
+    String apiCall = "/groups/{groupId}/projects?with_shared={withShared}";
+    Map<String, String> uriVariables = createUriVariables("groupId", group.getId(), "withShared",
+        Boolean.toString(withShared));
     if (StringUtils.hasText(search)) {
-      apiCall += "?search={search}";
+      apiCall += "&search={search}";
       uriVariables.put("search", search);
     }
     return makeReadListApiCall(apiCall, RESPONSE_TYPE_PROJECTS, uriVariables);
