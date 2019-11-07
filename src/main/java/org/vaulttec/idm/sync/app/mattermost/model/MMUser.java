@@ -25,7 +25,6 @@ import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MMUser {
@@ -50,7 +49,7 @@ public class MMUser {
   public MMUser() {
     this.idpUser = null;
   }
-  
+
   public MMUser(IdpUser idpUser) {
     this.idpUser = idpUser;
   }
@@ -113,15 +112,6 @@ public class MMUser {
 
   public void setAuthData(String authData) {
     this.authData = authData;
-  }
-
-  public List<MMRole> getRoles() {
-    return roles;
-  }
-
-  @JsonSetter("roles")
-  public void setRoles(String roles) {
-    this.roles = MMRole.fromJson(roles);
   }
 
   public boolean isActive() {

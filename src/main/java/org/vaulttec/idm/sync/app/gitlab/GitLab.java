@@ -361,24 +361,6 @@ public class GitLab extends AbstractApplication {
     }
   }
 
-  protected Map<String, GLUser> getUsersFromGroups(Collection<GLGroup> groups) {
-    Map<String, GLUser> users = new HashMap<>();
-    for (GLGroup group : groups) {
-      for (GLUser member : group.getMembers()) {
-        GLUser user = users.get(member.getUsername());
-        if (user == null) {
-          user = new GLUser(member.getIdpUser());
-          user.setUsername(member.getUsername());
-          user.setName(member.getName());
-          user.setEmail(member.getEmail());
-          users.put(member.getUsername(), user);
-        }
-        user.addGroup(group);
-      }
-    }
-    return users;
-  }
-
   @Override
   public List<AppStatistics> getStatistics() {
     List<AppStatistics> statistics = new ArrayList<>();
