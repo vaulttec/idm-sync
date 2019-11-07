@@ -86,7 +86,7 @@ public class GitLabClientIntegrationTest {
     List<GLUser> users = client.getUsers(null);
     assertThat(users).isNotNull().isNotEmpty();
     for (GLUser user : users) {
-      LOG.info("{} ({}) - {}", user.getUsername(), user.getPermission(), user.getState());
+      LOG.info("{} ({}) - {}", user.getUsername(), user.getName(), user.getState());
     }
   }
 
