@@ -147,8 +147,10 @@ public class Mattermost extends AbstractApplication {
             LOG.warn("New user '{}' not created - missing required email address", targetUser.getUsername());
           } else {
             MMUser newUser = client.createUser(targetUser.getUsername(), targetUser.getFirstName(),
-                targetUser.getLastName(), targetUser.getEmail(), targetUser.getAuthService(), targetUser.getAuthData());
+                targetUser.getLastName(), targetUser.getEmail(), null, null); // targetUser.getAuthService(), targetUser.getAuthData());
             if (newUser != null) {
+              // Workaround for https://mattermost.atlassian.net/browse/MM-19766
+              client.updateUserAuthentication(newUser, targetUser.getAuthService(), targetUser.getAuthData());
               publishSyncEvent(MattermostEvents.userCreated(newUser));
               syncedUsers.put(newUser.getUsername(), newUser);
               updateUserIdAttribute(targetUser.getIdpUser(), newUser);

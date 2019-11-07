@@ -108,7 +108,7 @@ public class MattermostTest {
     team.setName("team1");
 
     when(client.getUsers()).thenReturn(new ArrayList<>());
-    when(client.createUser("user1", "John", "Doo 1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA)).thenReturn(mmUser);
+    when(client.createUser("user1", "John", "Doo 1", "user1@acme.com", null, null /*AUTH_SERVICE, AUTH_DATA*/)).thenReturn(mmUser);
     when(client.getTeamsWithMembers()).thenReturn(new ArrayList<>());
     when(client.createTeam("team1", "team1")).thenReturn(team);
     when(client.addMemberToTeam(team, mmUser)).thenReturn(true);
@@ -135,7 +135,7 @@ public class MattermostTest {
     verify(client).getUsers();
     verify(client).getTeamsWithMembers();
     verify(client).createTeam("team1", "team1");
-    verify(client).createUser("user1", "John", "Doo 1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA);
+    verify(client).createUser("user1", "John", "Doo 1", "user1@acme.com", null, null /*AUTH_SERVICE, AUTH_DATA*/);
     verify(client).addMemberToTeam(team, mmUser);
     verify(client).updateTeamMemberRoles(team, mmUser, Arrays.asList(MMRole.TEAM_ADMIN));
     verify(client, never()).removeMemberFromTeam(team, null);
@@ -175,7 +175,7 @@ public class MattermostTest {
 
     when(client.getUsers()).thenReturn(mmUsers);
     when(client.getTeamsWithMembers()).thenReturn(teams);
-    when(client.createUser("user2", "User", "2", "user2@acme.com", AUTH_SERVICE, AUTH_DATA)).thenReturn(mmUser2);
+    when(client.createUser("user2", "User", "2", "user2@acme.com", null, null /*AUTH_SERVICE, AUTH_DATA*/)).thenReturn(mmUser2);
     when(client.addMemberToTeam(team, mmUser2)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
@@ -212,7 +212,7 @@ public class MattermostTest {
     verify(client).getTeamsWithMembers();
     verify(client, never()).createTeam("team1", "team1");
     verify(client, never()).createUser("user1", "User", "1", "user1@acme.com", AUTH_SERVICE, AUTH_DATA);
-    verify(client).createUser("user2", "User", "2", "user2@acme.com", AUTH_SERVICE, AUTH_DATA);
+    verify(client).createUser("user2", "User", "2", "user2@acme.com", null, null /*AUTH_SERVICE, AUTH_DATA*/);
     verify(client, never()).addMemberToTeam(team, mmUser);
     verify(client).updateTeamMemberRoles(team, mmUser, Arrays.asList(MMRole.TEAM_ADMIN));
     verify(client).addMemberToTeam(team, mmUser2);

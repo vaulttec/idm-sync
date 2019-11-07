@@ -91,8 +91,9 @@ public class MattermostClientIntegrationTest {
   @Test
   @Ignore
   public void testCreateUser() {
-    MMUser user = client.createUser("x000042", "John", "Doo", "john.doo@acme.com", "gitlab", "x000042");
+    MMUser user = client.createUser("x000042", "John", "Doo", "john.doo@acme.com", null, null);
     assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000042");
+    assertTrue(client.updateUserAuthentication(user, "gitlab", "x000042"));
   }
 
   @Test

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,7 +219,8 @@ public class MattermostClient extends AbstractRestClient {
 
   public MMUser createUser(String username, String firstName, String lastName, String email, String authService,
       String authData) {
-    LOG.info("Creating user: username={}, firstName={}, lastName={}, email={}", username, firstName, lastName, email);
+    LOG.info("Creating user: username={}, firstName={}, lastName={}, email={}, authService={}", username, firstName,
+        lastName, email, authService);
     if (!StringUtils.hasText(username) || !StringUtils.hasText(email)) {
       throw new IllegalStateException("username, name and email required");
     }
@@ -236,10 +238,24 @@ public class MattermostClient extends AbstractRestClient {
     // https://forum.mattermost.org/t/solved-how-to-transition-a-user-to-gitlab-authentication/1070
     if (StringUtils.hasText(authService) && StringUtils.hasText(authData)) {
       entityBody += ", \"auth_service\": \"" + authService + "\", \"auth_data\": \"" + authData + "\"";
+    } else {
+      entityBody += ", \"password\": \"" + UUID.randomUUID().toString() + "\"";
     }
     entityBody += "}";
     HttpEntity<String> entity = new HttpEntity<String>(entityBody, authenticationEntity.getHeaders());
     return makeWriteApiCall(apiCall, entity, MMUser.class);
+  }
+
+  public boolean updateUserAuthentication(MMUser user, String authService, String authData) {
+    if (user == null || !StringUtils.hasText(user.getId())) {
+      throw new IllegalStateException("Mattermost user with valid ID required");
+    }
+    LOG.info("Updating user '{}' ({}) authentication: authService={}", user.getUsername(), user.getId(), authService);
+    String apiCall = "/users/{id}/auth";
+    Map<String, String> uriVariables = createUriVariables("id", user.getId());
+    HttpEntity<String> entity = new HttpEntity<String>("{\"auth_service\": \"" + authService + "\", \"auth_data\": \""
+        + authData + "\", \"password\": \"" + /* "123456" + */"\"}", authenticationEntity.getHeaders());
+    return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
   }
 
   public boolean updateUserActiveStatus(MMUser user, boolean active) {
