@@ -535,4 +535,60 @@ public class MattermostTest {
 
     verify(eventRepository).add(any(AuditEvent.class));
   }
+
+  @Test
+  public void testSyncDoNotDeactivateSystemAdmins() {
+    List<MMUser> mmUsers = new ArrayList<>();
+    MMUser mmUser = new MMUser();
+    mmUser.setId("1");
+    mmUser.setUsername("admin");
+    mmUser.setFirstName("System");
+    mmUser.setLastName("Admin");
+    mmUser.setEmail("sysadmin@acme.com");
+    mmUser.setDeleteAt("0");
+    mmUser.setRoles("system_user system_admin");
+    mmUsers.add(mmUser);
+
+    List<MMTeam> teams = new ArrayList<>();
+
+    when(client.getUsers()).thenReturn(mmUsers);
+    when(client.getTeamsWithMembers()).thenReturn(teams);
+
+    List<IdpGroup> idpGroups = new ArrayList<>();
+
+    app.sync(idpGroups);
+
+    verify(client).getUsers();
+    verify(client, never()).updateUserActiveStatus(mmUser, false);
+
+    verify(eventRepository, never()).add(any(AuditEvent.class));
+  }
+
+  @Test
+  public void testSyncDoNotDeactivateBots() {
+    List<MMUser> mmUsers = new ArrayList<>();
+    MMUser mmUser = new MMUser();
+    mmUser.setId("1");
+    mmUser.setUsername("bot");
+    mmUser.setFirstName("Test Bot");
+    mmUser.setEmail("bot@acme.com");
+    mmUser.setDeleteAt("0");
+    mmUser.setRoles("system_user");
+    mmUser.setIsBot(true);
+    mmUsers.add(mmUser);
+
+    List<MMTeam> teams = new ArrayList<>();
+
+    when(client.getUsers()).thenReturn(mmUsers);
+    when(client.getTeamsWithMembers()).thenReturn(teams);
+
+    List<IdpGroup> idpGroups = new ArrayList<>();
+
+    app.sync(idpGroups);
+
+    verify(client).getUsers();
+    verify(client, never()).updateUserActiveStatus(mmUser, false);
+
+    verify(eventRepository, never()).add(any(AuditEvent.class));
+  }
 }

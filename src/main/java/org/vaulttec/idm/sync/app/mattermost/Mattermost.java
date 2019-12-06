@@ -162,7 +162,7 @@ public class Mattermost extends AbstractApplication {
       // Deactivate existing users which are not associated with Mattermost groups
       // anymore
       for (MMUser sourceUser : sourceUsers) {
-        if (!excludedUsers.contains(sourceUser.getUsername())) {
+        if (!sourceUser.isSystemAdmin() && !sourceUser.isBot() && !excludedUsers.contains(sourceUser.getUsername())) {
           if (sourceUser.isActive()) {
             if (client.updateUserActiveStatus(sourceUser, false)) {
               publishSyncEvent(MattermostEvents.userDeactivated(sourceUser));
@@ -259,7 +259,7 @@ public class Mattermost extends AbstractApplication {
       // Remove all users from Mattermost teams which are not available in IDP anymore
       for (MMTeam sourceTeam : sourceTeams) {
         for (MMUser sourceUser : sourceTeam.getMembers()) {
-          if (!excludedUsers.contains(sourceUser.getUsername())) {
+          if (!sourceUser.isSystemAdmin() && !sourceUser.isBot() && !excludedUsers.contains(sourceUser.getUsername())) {
             if (client.removeMemberFromTeam(sourceTeam, sourceUser)) {
               publishSyncEvent(MattermostEvents.userRemovedFromTeam(sourceUser, sourceTeam));
             }

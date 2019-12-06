@@ -25,6 +25,7 @@ import org.vaulttec.idm.sync.idp.model.IdpUser;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MMUser {
@@ -42,6 +43,8 @@ public class MMUser {
   @JsonAlias("auth_data")
   private String authData;
   private List<MMRole> roles;
+  @JsonProperty("is_bot")
+  private boolean isBot;
   @JsonAlias("delete_at")
   private String deleteAt;
   private Map<String, MMTeam> teams = new HashMap<>();
@@ -114,6 +117,26 @@ public class MMUser {
     this.authData = authData;
   }
 
+  public List<MMRole> getRoles() {
+    return roles;
+  }
+
+  public void setRoles(String roles) {
+    this.roles = MMRole.fromJson(roles);
+  }
+
+  public boolean isSystemAdmin() {
+    return roles != null && roles.contains(MMRole.SYSTEM_ADMIN);
+  }
+
+  public boolean isBot() {
+    return isBot;
+  }
+
+  public void setIsBot(boolean isBot) {
+    this.isBot = isBot;
+  }
+
   public boolean isActive() {
     return "0".equals(deleteAt) ? true : false;
   }
@@ -170,6 +193,6 @@ public class MMUser {
 
   @Override
   public String toString() {
-    return username + (roles != null ? " " + roles : "");
+    return username + (getRoles() != null ? " " + getRoles() : "");
   }
 }

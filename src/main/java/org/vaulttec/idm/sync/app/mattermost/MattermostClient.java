@@ -176,7 +176,7 @@ public class MattermostClient extends AbstractRestClient {
     if (roles == null || roles.isEmpty()) {
       throw new IllegalStateException("Mattermost team role required");
     }
-    LOG.info("Updating user '{}' in team '{}' wih roles {}", user.getUsername(), team.getName(), roles);
+    LOG.info("Updating user '{}' in team '{}' with roles {}", user.getUsername(), team.getName(), roles);
     String apiCall = "/teams/{teamId}/members/{userId}/roles";
     Map<String, String> uriVariables = createUriVariables("teamId", team.getId(), "userId", user.getId());
     String rolesText = roles.get(0).name().toLowerCase();
