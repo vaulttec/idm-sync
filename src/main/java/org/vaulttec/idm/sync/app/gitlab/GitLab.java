@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,6 +214,9 @@ public class GitLab extends AbstractApplication {
     List<GLGroup> sourceGroups = client.getGroupsWithMembers(null, false);
     if (sourceGroups != null) {
 
+      // Skip subgroups
+      sourceGroups = sourceGroups.stream().filter(group -> !group.isSubGroup()).collect(Collectors.toList());
+
       // Update memberships of existing groups
       for (GLGroup sourceGroup : sourceGroups) {
         GLGroup targetGroup = targetGroups.get(sourceGroup.getPath());
@@ -366,11 +370,15 @@ public class GitLab extends AbstractApplication {
     List<AppStatistics> statistics = new ArrayList<>();
     List<GLGroup> groups = client.getGroupsWithMembers(null, true);
     for (GLGroup group : groups) {
-      Collection<GLUser> members = group.getMembers();
-      AppStatistics groupStatistics = new AppStatistics(group.getName());
-      groupStatistics.addStatistic("members", Integer.toString(members.size()));
-      groupStatistics.addStatistics(group.getStatistics());
-      statistics.add(groupStatistics);
+
+      // Skip subgroups
+      if (!group.isSubGroup()) {
+        Collection<GLUser> members = group.getMembers();
+        AppStatistics groupStatistics = new AppStatistics(group.getName());
+        groupStatistics.addStatistic("members", Integer.toString(members.size()));
+        groupStatistics.addStatistics(group.getStatistics());
+        statistics.add(groupStatistics);
+      }
     }
     return statistics;
   }

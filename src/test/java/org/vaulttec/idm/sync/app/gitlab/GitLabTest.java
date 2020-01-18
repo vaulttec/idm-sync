@@ -476,6 +476,60 @@ public class GitLabTest {
   }
 
   @Test
+  public void testSyncGroupWithSkippedSubGroup() {
+    List<GLUser> glUsers = new ArrayList<>();
+    GLUser glUser = new GLUser();
+    glUser.setUsername("user1");
+    glUser.setName("User 1");
+    glUser.setEmail("user1@acme.com");
+    glUser.setState(GLState.ACTIVE);
+    glUsers.add(glUser);
+
+    List<GLGroup> glGroups = new ArrayList<>();
+    GLGroup glGroup = new GLGroup();
+    glGroup.setId("1");
+    glGroup.setPath("grp1");
+    glGroup.setName("grp1");
+    glGroup.addMember(glUser, GLPermission.GUEST);
+    glGroups.add(glGroup);
+
+    GLGroup glSubGroup = new GLGroup();
+    glSubGroup.setId("2");
+    glSubGroup.setPath("grp1/subgrp1");
+    glSubGroup.setName("subgrp1");
+    glSubGroup.setParentId("1");
+    glSubGroup.addMember(glUser, GLPermission.DEVELOPER);
+    glGroups.add(glSubGroup);
+
+    when(client.getUsers(null)).thenReturn(glUsers);
+    when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
+
+    IdpUser idpUser = new IdpUser();
+    idpUser.setUsername("user1");
+    idpUser.setFirstName("User");
+    idpUser.setLastName("1");
+    idpUser.setEmail("user1@acme.com");
+    Map<String, List<String>> attributes = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
+    idpUser.setAttributes(attributes);
+
+    List<IdpGroup> idpGroups = new ArrayList<>();
+    IdpGroup idpGroup = new IdpGroup();
+    idpGroup.setName("APP_GIT_grp1_Guest");
+    idpGroup.setPath("/APP_GIT_grp1_Guest");
+    idpGroup.addMember(idpUser);
+    idpGroups.add(idpGroup);
+
+    app.sync(idpGroups);
+
+    verify(client).getUsers(null);
+    verify(client, never()).createGroup("grp1", "grp1", null);
+    verify(client, never()).removeMemberFromGroup(glSubGroup, glUser);
+
+    verify(eventRepository, never()).add(any(AuditEvent.class));
+  }
+
+  @Test
   public void testSyncUserWithMultiplePermissions() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
