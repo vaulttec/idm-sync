@@ -242,9 +242,9 @@ public class GitLab extends AbstractApplication {
             }
           }
 
-          // Remove blocked users
+          // Remove blocked users or users which are not members any more
           for (GLUser sourceUser : sourceGroup.getMembers()) {
-            if (sourceUser.getState() == GLState.BLOCKED) {
+            if (sourceUser.getState() == GLState.BLOCKED || !targetGroup.isMember(sourceUser)) {
               if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
                 publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
               }

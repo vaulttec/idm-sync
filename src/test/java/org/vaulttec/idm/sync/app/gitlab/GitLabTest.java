@@ -49,6 +49,8 @@ public class GitLabTest {
   private static final String EXTERNAL_UID_ATTRIBUTE = "LDAP_ENTRY_DN";
   private static final String EXTERNAL_UID = "E42";
   private static final String GITLAB_ID = "G42";
+  private static final String EXTERNAL_UID2 = "E43";
+  private static final String GITLAB_ID2 = "G43";
   private GitLabClient client;
   private AuditEventRepository eventRepository;
   private GitLab app;
@@ -155,7 +157,7 @@ public class GitLabTest {
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
     GLUser glUser2 = new GLUser();
-    glUser2.setId(GITLAB_ID);
+    glUser2.setId(GITLAB_ID2);
     glUser2.setUsername("user2");
     glUser2.setName("User 2");
     glUser2.setEmail("user2@acme.com");
@@ -216,7 +218,7 @@ public class GitLabTest {
     verify(eventRepository, times(2)).add(any(AuditEvent.class));
 
     assertThat(idpUser2.isAttributesModified()).isTrue();
-    assertThat(idpUser2.getAttribute(GitLab.USER_ID_ATTRIBUTE)).isEqualTo(GITLAB_ID);
+    assertThat(idpUser2.getAttribute(GitLab.USER_ID_ATTRIBUTE)).isEqualTo(GITLAB_ID2);
   }
 
   @Test
@@ -322,10 +324,18 @@ public class GitLabTest {
     glGroup.addMember(glUser, GLPermission.MAINTAINER);
     glGroup.addMember(glUser2, GLPermission.MAINTAINER);
     glGroups.add(glGroup);
+    GLGroup glGroup2 = new GLGroup();
+    glGroup2.setPath("grp2");
+    glGroup2.setName("grp2");
+    glGroup2.addMember(glUser, GLPermission.MAINTAINER);
+    glGroup2.addMember(glUser2, GLPermission.MAINTAINER);
+    glGroups.add(glGroup2);
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
     when(client.removeMemberFromGroup(glGroup, glUser2)).thenReturn(true);
+    when(client.removeMemberFromGroup(glGroup2, glUser)).thenReturn(true);
+    when(client.removeMemberFromGroup(glGroup2, glUser2)).thenReturn(true);
     when(client.blockUser(glUser2)).thenReturn(true);
 
     IdpUser idpUser = new IdpUser();
@@ -336,6 +346,14 @@ public class GitLabTest {
     Map<String, List<String>> attributes = new HashMap<>();
     attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID));
     idpUser.setAttributes(attributes);
+    IdpUser idpUser2 = new IdpUser();
+    idpUser2.setUsername("user2");
+    idpUser2.setFirstName("User");
+    idpUser2.setLastName("2");
+    idpUser2.setEmail("user2@acme.com");
+    Map<String, List<String>> attributes2 = new HashMap<>();
+    attributes.put(EXTERNAL_UID_ATTRIBUTE, Arrays.asList(EXTERNAL_UID2));
+    idpUser2.setAttributes(attributes2);
 
     List<IdpGroup> idpGroups = new ArrayList<>();
     IdpGroup idpGroup = new IdpGroup();
@@ -343,6 +361,10 @@ public class GitLabTest {
     idpGroup.setPath("/APP_GIT_grp1_Maintainer");
     idpGroup.addMember(idpUser);
     idpGroups.add(idpGroup);
+    IdpGroup idpGroup2 = new IdpGroup();
+    idpGroup2.setName("APP_GIT_grp2_Maintainer");
+    idpGroup2.setPath("/APP_GIT_grp2_Maintainer");
+    idpGroups.add(idpGroup2);
 
     app.sync(idpGroups);
 
@@ -350,12 +372,22 @@ public class GitLabTest {
     verify(client).getGroupsWithMembers(null, false);
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
+    verify(client, never()).createGroup("grp2", "grp2", null);
+    verify(client, never()).createUser("user2", "User 2", "user2@acme.com", null, null);
     verify(client, never()).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
+    verify(client, never()).addMemberToGroup(glGroup, glUser2, GLPermission.MAINTAINER);
+    verify(client, never()).addMemberToGroup(glGroup2, glUser, GLPermission.MAINTAINER);
+    verify(client, never()).addMemberToGroup(glGroup2, glUser2, GLPermission.MAINTAINER);
+    verify(client, never()).removeMemberFromGroup(glGroup, glUser);
     verify(client).removeMemberFromGroup(glGroup, glUser2);
+    verify(client).removeMemberFromGroup(glGroup2, glUser);
+    verify(client).removeMemberFromGroup(glGroup2, glUser2);
+    verify(client, never()).blockUser(glUser);
     verify(client).blockUser(glUser2);
     verify(client, never()).unblockUser(glUser);
+    verify(client, never()).unblockUser(glUser2);
 
-    verify(eventRepository, times(2)).add(any(AuditEvent.class));
+    verify(eventRepository, times(4)).add(any(AuditEvent.class));
   }
 
   @Test
@@ -369,6 +401,7 @@ public class GitLabTest {
     glUser.setState(GLState.BLOCKED);
     glUsers.add(glUser);
     GLUser glUser2 = new GLUser();
+    glUser2.setId(GITLAB_ID2);
     glUser2.setUsername("user2");
     glUser2.setName("User 2");
     glUser2.setEmail("user2@acme.com");
@@ -384,6 +417,7 @@ public class GitLabTest {
 
     when(client.getUsers(null)).thenReturn(glUsers);
     when(client.getGroupsWithMembers(null, false)).thenReturn(glGroups);
+    when(client.addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER)).thenReturn(true);
     when(client.removeMemberFromGroup(glGroup, glUser2)).thenReturn(true);
     when(client.unblockUser(glUser)).thenReturn(true);
 
@@ -410,11 +444,14 @@ public class GitLabTest {
     verify(client, never()).createGroup("grp1", "grp1", null);
     verify(client, never()).createUser("user1", "User 1", "user1@acme.com", null, null);
     verify(client).addMemberToGroup(glGroup, glUser, GLPermission.MAINTAINER);
+    verify(client, never()).addMemberToGroup(glGroup, glUser2, GLPermission.MAINTAINER);
     verify(client).removeMemberFromGroup(glGroup, glUser2);
     verify(client, never()).blockUser(glUser);
+    verify(client, never()).blockUser(glUser2);
     verify(client).unblockUser(glUser);
+    verify(client, never()).unblockUser(glUser2);
 
-    verify(eventRepository, times(2)).add(any(AuditEvent.class));
+    verify(eventRepository, times(3)).add(any(AuditEvent.class));
 
     assertThat(idpUser.isAttributesModified()).isTrue();
     assertThat(idpUser.getAttribute(GitLab.USER_ID_ATTRIBUTE)).isEqualTo(GITLAB_ID);
