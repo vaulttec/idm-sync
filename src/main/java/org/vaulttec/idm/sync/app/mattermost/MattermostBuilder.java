@@ -26,6 +26,7 @@ public final class MattermostBuilder {
   private String groupSearch;
   private String groupRegExp;
   private String excludedUsers;
+  private String globalTeam;
   private String authService;
   private String authUidAttribute;
 
@@ -49,6 +50,11 @@ public final class MattermostBuilder {
     return this;
   }
 
+  public MattermostBuilder globalTeam(String globalTeam) {
+    this.globalTeam = globalTeam;
+    return this;
+  }
+
   public MattermostBuilder authService(String authService) {
     this.authService = authService;
     return this;
@@ -69,7 +75,7 @@ public final class MattermostBuilder {
     if (excludedUsers == null) {
       excludedUsers = "root,ghost";
     }
-    return new Mattermost(client, eventRepository, groupSearch, groupRegExp, excludedUsers, authService,
+    return new Mattermost(client, eventRepository, groupSearch, groupRegExp, excludedUsers, globalTeam, authService,
         authUidAttribute);
   }
 }

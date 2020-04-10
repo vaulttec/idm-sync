@@ -52,13 +52,15 @@ public class Mattermost extends AbstractApplication {
   private final Set<String> excludedUsers;
   private final String authService;
   private final String authUidAttribute;
+  private final String globalTeam;
 
   Mattermost(MattermostClient client, AuditEventRepository eventRepository, String groupSearch, String groupRegExp,
-      String excludedUsers, String authService, String authUidAttribute) {
+      String excludedUsers, String globalTeam, String authService, String authUidAttribute) {
     super(eventRepository, groupSearch, groupRegExp);
     LOG.debug("Init: groupSearch={}, groupRegExp={}", groupSearch, groupRegExp);
     this.client = client;
     this.excludedUsers = StringUtils.commaDelimitedListToTrimmedSet(excludedUsers);
+    this.globalTeam = globalTeam;
     this.authService = authService;
     this.authUidAttribute = authUidAttribute;
   }
@@ -147,7 +149,8 @@ public class Mattermost extends AbstractApplication {
             LOG.warn("New user '{}' not created - missing required email address", targetUser.getUsername());
           } else {
             MMUser newUser = client.createUser(targetUser.getUsername(), targetUser.getFirstName(),
-                targetUser.getLastName(), targetUser.getEmail(), null, null); // targetUser.getAuthService(), targetUser.getAuthData());
+                targetUser.getLastName(), targetUser.getEmail(), null, null); // targetUser.getAuthService(),
+                                                                              // targetUser.getAuthData());
             if (newUser != null) {
               // Workaround for https://mattermost.atlassian.net/browse/MM-19766
               client.updateUserAuthentication(newUser, targetUser.getAuthService(), targetUser.getAuthData());
@@ -314,6 +317,16 @@ public class Mattermost extends AbstractApplication {
           mmUser.addTeam(mmTeam);
           mmTeam.addMember(mmUser, teamRole);
         }
+      }
+    }
+    if (!StringUtils.isEmpty(globalTeam)) {
+      LOG.debug("Populating global team '{}'", globalTeam);
+      MMTeam mmTeam = new MMTeam();
+      mmTeam.setName(globalTeam);
+      mmTeams.put(globalTeam, mmTeam);
+      for (MMUser mmUser : mmUsers.values()) {
+        mmUser.addTeam(mmTeam);
+        mmTeam.addMember(mmUser, MMRole.TEAM_USER);
       }
     }
   }
