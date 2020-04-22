@@ -21,6 +21,7 @@ public final class MattermostClientBuilder {
 
   private final String serverUrl;
   private int perPage;
+  private int retryWaitSeconds;
   private String personalAccessToken;
   private String proxyHost;
   private int proxyPort;
@@ -31,6 +32,11 @@ public final class MattermostClientBuilder {
 
   public MattermostClientBuilder perPage(int perPage) {
     this.perPage = perPage;
+    return this;
+  }
+
+  public MattermostClientBuilder retryWaitSeconds(int retryWaitSeconds) {
+    this.retryWaitSeconds = retryWaitSeconds;
     return this;
   }
 
@@ -61,12 +67,15 @@ public final class MattermostClientBuilder {
     if (perPage == 0) {
       perPage = 100;
     }
+    if (retryWaitSeconds == 0) {
+      retryWaitSeconds = 1;
+    }
     if (personalAccessToken == null) {
       throw new IllegalStateException("personalAccessToken required");
     }
     if (proxyHost != null && proxyPort == 0) {
       throw new IllegalStateException("proxyPort required");
     }
-    return new MattermostClient(serverUrl, perPage, personalAccessToken, proxyHost, proxyPort);
+    return new MattermostClient(serverUrl, perPage, retryWaitSeconds, personalAccessToken, proxyHost, proxyPort);
   }
 }

@@ -43,6 +43,7 @@ idp:
       id: idm-sync
       secret: ${keycloak.clientSecret}
     perPage: 100
+    retryWaitSeconds: 1
 
 apps:
   - factory: org.vaulttec.idm.sync.app.gitlab.GitLabFactory
@@ -59,6 +60,7 @@ apps:
         name: ${gitlab.providerName}
         uidAttribute: ${gitlab.providerUidAttribute}
       perPage: 100
+      retryWaitSeconds: 1
   - factory: org.vaulttec.idm.sync.app.mattermost.MattermostFactory
     config:
       serverUrl: ${mattermost.serverUrl}
@@ -73,6 +75,7 @@ apps:
         serviceName: gitlab
         uidAttribute: GITLAB_USER_ID
       perPage: 100
+      retryWaitSeconds: 1
 
 api:
   csvSeparator: ';'

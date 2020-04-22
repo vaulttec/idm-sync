@@ -55,11 +55,11 @@ public class KeycloakClient extends AbstractRestClient {
   private final HttpEntity<String> loginEntity;
   private final ObjectMapper mapper;
 
-  KeycloakClient(String serverUrl, int perPage, String realm, String clientId, String clientSecret, String proxyHost,
-      int proxyPort) {
-    super(serverUrl, perPage, proxyHost, proxyPort);
-    LOG.debug("Init: serverUrl={}, perPage={}, realm={}, clientId={}, proxyHost={}, proxyPort={}", serverUrl, perPage,
-        realm, clientId, proxyHost, proxyPort);
+  KeycloakClient(String serverUrl, int perPage, int retryWaitSeconds, String realm, String clientId,
+      String clientSecret, String proxyHost, int proxyPort) {
+    super(serverUrl, perPage, retryWaitSeconds, proxyHost, proxyPort);
+    LOG.debug("Init: serverUrl={}, perPage={}, retryWaitSeconds={}, realm={}, clientId={}, proxyHost={}, proxyPort={}",
+        serverUrl, perPage, retryWaitSeconds, realm, clientId, proxyHost, proxyPort);
     this.realm = realm;
     this.loginEntity = createLoginEntity(clientId, clientSecret);
     this.mapper = new ObjectMapper();

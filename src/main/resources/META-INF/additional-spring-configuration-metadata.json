@@ -10,6 +10,11 @@
     "description": "Internet proxy port"
   },
   {
+    "name": "sync.email-domain",
+    "type": "java.lang.String",
+    "description": "Default domain name used for users without email address"
+  },
+  {
     "name": "sync.rate",
     "type": "java.lang.Long",
     "description": "Fixed rate (in msec) the sync task is scheduled"
@@ -35,6 +40,16 @@
     "description": "URL of identity provider"
   },
   {
+    "name": "idp.config.per-page",
+    "type": "java.lang.Integer",
+    "description": "Number of entries per response from identity provider"
+  },
+  {
+    "name": "idp.config.retry-wait-seconds",
+    "type": "java.lang.Integer",
+    "description": "Number of seconds to wait before retrying a rate-limited request"
+  },
+  {
     "name": "idp.config.realm",
     "type": "java.lang.String",
     "description": "Realm name of identity provider"
@@ -50,11 +65,6 @@
     "description": "Client secret of identity provider"
   },
   {
-    "name": "idp.config.per-page",
-    "type": "java.lang.String",
-    "description": "Number of entries per response from identity provider"
-  },
-  {
     "name": "keycloak.server-url",
     "type": "java.lang.String",
     "description": "URL of Keycloak server"
@@ -68,6 +78,16 @@
     "name": "gitlab.server-url",
     "type": "java.lang.String",
     "description": "URL of GitLab server"
+  },
+  {
+    "name": "gitlab.config.per-page",
+    "type": "java.lang.Integer",
+    "description": "Number of entries per response from GitLab server"
+  },
+  {
+    "name": "gitlab.config.retry-wait-seconds",
+    "type": "java.lang.Integer",
+    "description": "Number of seconds to wait before retrying a rate-limited request"
   },
   {
     "name": "gitlab.personal-access-token",
@@ -90,13 +110,18 @@
     "description": "A description for 'mattermost.server-url'"
   },
   {
+    "name": "mattermost.config.per-page",
+    "type": "java.lang.Integer",
+    "description": "Number of entries per response from Mattermost server"
+  },
+  {
+    "name": "mattermost.config.retry-wait-seconds",
+    "type": "java.lang.Integer",
+    "description": "Number of seconds to wait before retrying a rate-limited request"
+  },
+  {
     "name": "mattermost.personal-access-token",
     "type": "java.lang.String",
     "description": "Personal access token of user with admin permission in Mattermost"
-  },
-  {
-    "name": "sync.email-domain",
-    "type": "java.lang.String",
-    "description": "Default domain name used for users without email address"
   }
 ]}

@@ -49,9 +49,11 @@ public class GitLabClient extends AbstractRestClient {
   protected static final ParameterizedTypeReference<List<GLProject>> RESPONSE_TYPE_PROJECTS = new ParameterizedTypeReference<List<GLProject>>() {
   };
 
-  GitLabClient(String serverUrl, int perPage, String personalAccessToken, String proxyHost, int proxyPort) {
-    super(serverUrl, perPage, proxyHost, proxyPort);
-    LOG.debug("Init: serverUrl={}, perPage={}, proxyHost={}, proxyPort={}", serverUrl, perPage, proxyHost, proxyPort);
+  GitLabClient(String serverUrl, int perPage, int retryWaitSeconds, String personalAccessToken, String proxyHost,
+      int proxyPort) {
+    super(serverUrl, perPage, retryWaitSeconds, proxyHost, proxyPort);
+    LOG.debug("Init: serverUrl={}, perPage={}, retryWaitSeconds={}, proxyHost={}, proxyPort={}", serverUrl, perPage,
+        retryWaitSeconds, proxyHost, proxyPort);
     prepareAuthenticationEntity("PRIVATE-TOKEN", personalAccessToken);
   }
 

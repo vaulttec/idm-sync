@@ -20,10 +20,11 @@ package org.vaulttec.idm.sync.idp.keycloak;
 public final class KeycloakClientBuilder {
 
   private final String serverUrl;
+  private int perPage;
+  private int retryWaitSeconds;
   private String realm;
   private String clientId;
   private String clientSecret;
-  private int perPage;
   private String proxyHost;
   private int proxyPort;
 
@@ -33,6 +34,11 @@ public final class KeycloakClientBuilder {
 
   public KeycloakClientBuilder perPage(int perPage) {
     this.perPage = perPage;
+    return this;
+  }
+
+  public KeycloakClientBuilder retryWaitSeconds(int retryWaitSeconds) {
+    this.retryWaitSeconds = retryWaitSeconds;
     return this;
   }
 
@@ -80,6 +86,9 @@ public final class KeycloakClientBuilder {
     if (perPage == 0) {
       perPage = 100;
     }
+    if (retryWaitSeconds == 0) {
+      retryWaitSeconds = 1;
+    }
     if (realm == null) {
       throw new IllegalStateException("realm required");
     }
@@ -92,6 +101,7 @@ public final class KeycloakClientBuilder {
     if (proxyHost != null && proxyPort == 0) {
       throw new IllegalStateException("proxyPort required");
     }
-    return new KeycloakClient(serverUrl, perPage, realm, clientId, clientSecret, proxyHost, proxyPort);
+    return new KeycloakClient(serverUrl, perPage, retryWaitSeconds, realm, clientId, clientSecret, proxyHost,
+        proxyPort);
   }
 }

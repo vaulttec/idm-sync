@@ -32,6 +32,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.HttpClientErrorException.TooManyRequests;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -42,9 +43,11 @@ public abstract class AbstractRestClient extends AbstractClient {
 
   protected final RestTemplate restTemplate;
   protected HttpEntity<String> authenticationEntity;
+  protected int retryWaitSeconds;
 
-  public AbstractRestClient(String serverUrl, int perPage, String proxyHost, int proxyPort) {
+  public AbstractRestClient(String serverUrl, int perPage, int retryWaitSeconds, String proxyHost, int proxyPort) {
     super(serverUrl, perPage);
+    this.retryWaitSeconds = retryWaitSeconds;
     this.restTemplate = createRestTemplate(proxyHost, proxyPort);
   }
 
@@ -85,12 +88,18 @@ public abstract class AbstractRestClient extends AbstractClient {
   protected <T> T makeReadApiCall(String apiCall, ParameterizedTypeReference<T> typeReference,
       Map<String, String> uriVariables) {
     String url = getApiUrl(apiCall);
-    try {
-      ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
-          uriVariables);
-      return response.getBody();
-    } catch (Exception e) {
-      logException(HttpMethod.GET, uriVariables, url, e);
+    for (int retries = 1; retries >= 0; retries--) {
+      try {
+        ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
+            uriVariables);
+        return response.getBody();
+      } catch (TooManyRequests e) {
+
+        // API rate limit exceeded: we have to wait and retry
+        sleep();
+      } catch (Exception e) {
+        logException(HttpMethod.GET, uriVariables, url, e);
+      }
     }
     return null;
   }
@@ -98,33 +107,51 @@ public abstract class AbstractRestClient extends AbstractClient {
   protected <T> List<T> makeReadListApiCall(String apiCall, ParameterizedTypeReference<List<T>> typeReference,
       Map<String, String> uriVariables) {
     String url = getApiUrl(apiCall);
-    try {
-      ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
-          uriVariables);
-      return response.getBody();
-    } catch (Exception e) {
-      logException(HttpMethod.GET, uriVariables, url, e);
+    for (int retries = 1; retries >= 0; retries--) {
+      try {
+        ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity,
+            typeReference, uriVariables);
+        return response.getBody();
+      } catch (TooManyRequests e) {
+
+        // API rate limit exceeded: we have to wait and retry
+        sleep();
+      } catch (Exception e) {
+        logException(HttpMethod.GET, uriVariables, url, e);
+      }
     }
     return null;
   }
 
   protected boolean makeWriteApiCall(String apiCall, HttpMethod method, Map<String, String> uriVariables) {
     String url = getApiUrl(apiCall);
-    try {
-      restTemplate.exchange(url, method, authenticationEntity, Void.class, uriVariables);
-      return true;
-    } catch (Exception e) {
-      logException(method, uriVariables, url, e);
+    for (int retries = 1; retries >= 0; retries--) {
+      try {
+        restTemplate.exchange(url, method, authenticationEntity, Void.class, uriVariables);
+        return true;
+      } catch (TooManyRequests e) {
+
+        // API rate limit exceeded: we have to wait and retry
+        sleep();
+      } catch (Exception e) {
+        logException(method, uriVariables, url, e);
+      }
     }
     return false;
   }
 
   protected <T> T makeWriteApiCall(String apiCall, Class<T> type, Map<String, String> uriVariables) {
     String url = getApiUrl(apiCall);
-    try {
-      return restTemplate.postForObject(url, authenticationEntity, type, uriVariables);
-    } catch (Exception e) {
-      logException(HttpMethod.POST, uriVariables, url, e);
+    for (int retries = 1; retries >= 0; retries--) {
+      try {
+        return restTemplate.postForObject(url, authenticationEntity, type, uriVariables);
+      } catch (TooManyRequests e) {
+
+        // API rate limit exceeded: we have to wait and retry
+        sleep();
+      } catch (Exception e) {
+        logException(HttpMethod.POST, uriVariables, url, e);
+      }
     }
     return null;
   }
@@ -132,11 +159,17 @@ public abstract class AbstractRestClient extends AbstractClient {
   protected boolean makeWriteApiCall(String apiCall, HttpMethod method, HttpEntity<String> entity,
       Map<String, String> uriVariables) {
     String url = getApiUrl(apiCall);
-    try {
-      restTemplate.exchange(url, method, entity, Void.class, uriVariables);
-      return true;
-    } catch (Exception e) {
-      logException(method, uriVariables, url, e);
+    for (int retries = 1; retries >= 0; retries--) {
+      try {
+        restTemplate.exchange(url, method, entity, Void.class, uriVariables);
+        return true;
+      } catch (TooManyRequests e) {
+
+        // API rate limit exceeded: we have to wait and retry
+        sleep();
+      } catch (Exception e) {
+        logException(method, uriVariables, url, e);
+      }
     }
     return false;
   }
@@ -144,22 +177,42 @@ public abstract class AbstractRestClient extends AbstractClient {
   protected <T> T makeWriteApiCall(String apiCall, HttpEntity<String> entity, Class<T> type,
       Map<String, String> uriVariables) {
     String url = getApiUrl(apiCall);
-    try {
-      return restTemplate.postForObject(url, entity, type, uriVariables);
-    } catch (Exception e) {
-      logException(HttpMethod.POST, uriVariables, url, e);
+    for (int retries = 1; retries >= 0; retries--) {
+      try {
+        return restTemplate.postForObject(url, entity, type, uriVariables);
+      } catch (TooManyRequests e) {
+
+        // API rate limit exceeded: we have to wait and retry
+        sleep();
+      } catch (Exception e) {
+        logException(HttpMethod.POST, uriVariables, url, e);
+      }
     }
     return null;
   }
 
   protected <T> T makeWriteApiCall(String apiCall, HttpEntity<String> entity, Class<T> type) {
     String url = getApiUrl(apiCall);
-    try {
-      return restTemplate.postForObject(url, entity, type);
-    } catch (Exception e) {
-      logException(HttpMethod.POST, null, url, e);
+    for (int retries = 1; retries >= 0; retries--) {
+      try {
+        return restTemplate.postForObject(url, entity, type);
+      } catch (TooManyRequests e) {
+
+        // API rate limit exceeded: we have to wait and retry
+        sleep();
+      } catch (Exception e) {
+        logException(HttpMethod.POST, null, url, e);
+      }
     }
     return null;
+  }
+
+  private void sleep() {
+    try {
+      Thread.sleep(retryWaitSeconds * 1000);
+    } catch (InterruptedException e1) {
+      // Ignore
+    }
   }
 
   private void logException(HttpMethod method, Map<String, String> uriVariables, String url, Exception e) {

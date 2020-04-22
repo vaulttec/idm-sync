@@ -51,9 +51,11 @@ public class MattermostClient extends AbstractRestClient {
   protected static final ParameterizedTypeReference<List<MMTeamChannel>> RESPONSE_TYPE_TEAM_CHANNELS = new ParameterizedTypeReference<List<MMTeamChannel>>() {
   };
 
-  MattermostClient(String serverUrl, int perPage, String personalAccessToken, String proxyHost, int proxyPort) {
-    super(serverUrl, perPage, proxyHost, proxyPort);
-    LOG.debug("Init: serverUrl={}, perPage={}, proxyHost={}, proxyPort={}", serverUrl, perPage, proxyHost, proxyPort);
+  MattermostClient(String serverUrl, int perPage, int retryWaitSeconds, String personalAccessToken, String proxyHost,
+      int proxyPort) {
+    super(serverUrl, perPage, retryWaitSeconds, proxyHost, proxyPort);
+    LOG.debug("Init: serverUrl={}, perPage={}, retryWaitSeconds={}, proxyHost={}, proxyPort={}", serverUrl, perPage,
+        retryWaitSeconds, proxyHost, proxyPort);
     prepareAuthenticationEntity("Authorization", "Bearer " + personalAccessToken);
   }
 
