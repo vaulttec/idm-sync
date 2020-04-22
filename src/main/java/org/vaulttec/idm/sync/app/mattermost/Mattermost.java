@@ -321,17 +321,12 @@ public class Mattermost extends AbstractApplication {
     }
     if (!StringUtils.isEmpty(globalTeam)) {
       LOG.debug("Populating global team '{}'", globalTeam);
-      MMTeam mmTeam = mmTeams.get(globalTeam);
-      if (mmTeam == null) {
-        mmTeam = new MMTeam();
-        mmTeam.setName(globalTeam);
-        mmTeams.put(globalTeam, mmTeam);
-      }
+      MMTeam mmTeam = new MMTeam();
+      mmTeam.setName(globalTeam);
+      mmTeams.put(globalTeam, mmTeam);
       for (MMUser mmUser : mmUsers.values()) {
-        if (!mmTeam.hasMember(mmUser)) {
-          mmUser.addTeam(mmTeam);
-          mmTeam.addMember(mmUser, MMRole.TEAM_USER);
-        }
+        mmUser.addTeam(mmTeam);
+        mmTeam.addMember(mmUser, MMRole.TEAM_USER);
       }
     }
   }
