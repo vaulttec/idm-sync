@@ -81,6 +81,7 @@ public class MattermostIntegrationTest {
     MattermostBuilder mmBuilder = new MattermostBuilder(glClient, null)
         .groupRegExp(env.getProperty("apps[1].config.group.regExp"))
         .excludedUsers(env.getProperty("apps[1].config.sync.excludedUsers"))
+        .globalTeam(env.getProperty("apps[1].config.sync.globalTeam"))
         .authService(env.getProperty("apps[1].config.auth.serviceName"))
         .authUidAttribute(env.getProperty("apps[1].config.auth.uidAttribute"));
     mattermost = mmBuilder.build();
