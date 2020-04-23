@@ -99,6 +99,7 @@ public abstract class AbstractRestClient extends AbstractClient {
         sleep();
       } catch (Exception e) {
         logException(HttpMethod.GET, uriVariables, url, e);
+        return null;
       }
     }
     return null;
@@ -118,6 +119,7 @@ public abstract class AbstractRestClient extends AbstractClient {
         sleep();
       } catch (Exception e) {
         logException(HttpMethod.GET, uriVariables, url, e);
+        return null;
       }
     }
     return null;
@@ -135,6 +137,7 @@ public abstract class AbstractRestClient extends AbstractClient {
         sleep();
       } catch (Exception e) {
         logException(method, uriVariables, url, e);
+        return false;
       }
     }
     return false;
@@ -151,6 +154,7 @@ public abstract class AbstractRestClient extends AbstractClient {
         sleep();
       } catch (Exception e) {
         logException(HttpMethod.POST, uriVariables, url, e);
+        return null;
       }
     }
     return null;
@@ -169,6 +173,7 @@ public abstract class AbstractRestClient extends AbstractClient {
         sleep();
       } catch (Exception e) {
         logException(method, uriVariables, url, e);
+        return false;
       }
     }
     return false;
@@ -186,6 +191,7 @@ public abstract class AbstractRestClient extends AbstractClient {
         sleep();
       } catch (Exception e) {
         logException(HttpMethod.POST, uriVariables, url, e);
+        return null;
       }
     }
     return null;
@@ -202,6 +208,7 @@ public abstract class AbstractRestClient extends AbstractClient {
         sleep();
       } catch (Exception e) {
         logException(HttpMethod.POST, null, url, e);
+        return null;
       }
     }
     return null;
