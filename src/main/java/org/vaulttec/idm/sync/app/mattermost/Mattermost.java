@@ -314,8 +314,16 @@ public class Mattermost extends AbstractApplication {
             mmUser.setAuthData(idpUser.getAttribute(authUidAttribute));
             mmUsers.put(idpUser.getUsername(), mmUser);
           }
-          mmUser.addTeam(mmTeam);
-          mmTeam.addMember(mmUser, teamRole);
+
+          // Add to team with the highest team role
+          if (!mmTeam.hasMember(mmUser)) {
+            mmUser.addTeam(mmTeam);
+            mmTeam.addMember(mmUser, teamRole);
+          } else {
+            if (mmTeam.getMemberRole(mmUser.getUsername()) == MMRole.TEAM_USER && teamRole == MMRole.TEAM_ADMIN) {
+              mmTeam.addMember(mmUser, teamRole);
+            }
+          }
         }
       }
     }
