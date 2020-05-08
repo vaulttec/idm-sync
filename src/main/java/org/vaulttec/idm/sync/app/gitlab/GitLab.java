@@ -184,7 +184,7 @@ public class GitLab extends AbstractApplication {
       // Block existing users which are not associated with GitLab groups anymore
       for (GLUser sourceUser : sourceUsers) {
         if (!excludedUsers.contains(sourceUser.getUsername())) {
-          if (sourceUser.getState() != GLState.BLOCKED) {
+          if (sourceUser.getState() == GLState.ACTIVE) {
             if (client.blockUser(sourceUser)) {
               publishSyncEvent(GitLabEvents.userBlocked(sourceUser));
             }
