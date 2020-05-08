@@ -70,7 +70,7 @@ apps:
         regExp: '^.*_GIT_(?<teamName>[\w-]+)_(?<teamAdmin>Maintainer)?.*$'
       sync:
         excludedUsers: mmadmin
-        globalTeam: gitlab
+        globalTeam: 
       auth:
         serviceName: gitlab
         uidAttribute: GITLAB_USER_ID
