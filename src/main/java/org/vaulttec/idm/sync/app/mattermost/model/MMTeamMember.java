@@ -57,7 +57,6 @@ public class MMTeamMember {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((teamId == null) ? 0 : teamId.hashCode());
     result = prime * result + ((userId == null) ? 0 : userId.hashCode());
     return result;
   }
@@ -74,13 +73,6 @@ public class MMTeamMember {
       return false;
     }
     MMTeamMember other = (MMTeamMember) obj;
-    if (teamId == null) {
-      if (other.teamId != null) {
-        return false;
-      }
-    } else if (!teamId.equals(other.teamId)) {
-      return false;
-    }
     if (userId == null) {
       if (other.userId != null) {
         return false;
@@ -93,6 +85,6 @@ public class MMTeamMember {
 
   @Override
   public String toString() {
-    return teamId + ": " + userId;
+    return teamId + ": " + userId + (getRoles() != null ? " " + getRoles() : "");
   }
 }
