@@ -80,6 +80,7 @@ public class MattermostClient extends AbstractRestClient {
       } else {
         entities = new ArrayList<>(response.getBody());
         do {
+          checkRateLimitRemaining(response.getHeaders().getFirst("X-Ratelimit-Remaining"));
           page++;
           uriVariables.put("page", Integer.toString(page));
           response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference, uriVariables);

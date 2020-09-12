@@ -214,6 +214,16 @@ public abstract class AbstractRestClient extends AbstractClient {
     return null;
   }
 
+  protected void checkRateLimitRemaining(String rateLimitRemainingValue) {
+    try {
+      if (Integer.parseInt(rateLimitRemainingValue) == 0) {
+        sleep();
+      }
+    } catch (NumberFormatException e) {
+      //Ignore
+    }
+  }
+
   private void sleep() {
     try {
       Thread.sleep(retryWaitSeconds * 1000);
