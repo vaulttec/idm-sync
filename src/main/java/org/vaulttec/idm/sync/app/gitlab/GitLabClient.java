@@ -92,10 +92,10 @@ public class GitLabClient extends AbstractRestClient {
 
   public List<GLUser> getUsers(String search) {
     LOG.debug("Retrieving users: search={}", search);
-    String apiCall = "/users";
+    String apiCall = "/users?exclude_internal=true";
     Map<String, String> uriVariables = createUriVariables();
     if (StringUtils.hasText(search)) {
-      apiCall += "?search={search}";
+      apiCall += "&search={search}";
       uriVariables.put("search", search);
     }
     return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
