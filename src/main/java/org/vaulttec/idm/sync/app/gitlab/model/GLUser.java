@@ -36,6 +36,10 @@ public class GLUser {
   private String username;
   private String name;
   private String email;
+  @JsonAlias("is_admin")
+  private boolean isAdmin;
+  @JsonAlias("using_license_seat")
+  private boolean isUsingLicenseSeat;
   private GLState state;
   @JsonAlias("access_level")
   private GLPermission permission;
@@ -86,6 +90,22 @@ public class GLUser {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public boolean isUsingLicenseSeat() {
+    return isUsingLicenseSeat;
+  }
+
+  public void setUsingLicenseSeat(boolean isUsingLicenseSeat) {
+    this.isUsingLicenseSeat = isUsingLicenseSeat;
+  }
+
+  public boolean isAdmin() {
+    return isAdmin;
+  }
+
+  public void setAdmin(boolean isAdmin) {
+    this.isAdmin = isAdmin;
   }
 
   public GLState getState() {

@@ -183,7 +183,9 @@ public class GitLab extends AbstractApplication {
 
       // Block existing users which are not associated with GitLab groups anymore
       for (GLUser sourceUser : sourceUsers) {
-        if (!excludedUsers.contains(sourceUser.getUsername())) {
+
+        // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
+        if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
           if (sourceUser.getState() == GLState.ACTIVE) {
             if (client.blockUser(sourceUser)) {
               publishSyncEvent(GitLabEvents.userBlocked(sourceUser));
@@ -226,7 +228,9 @@ public class GitLab extends AbstractApplication {
           for (GLUser targetMember : targetGroup.getMembers()) {
             GLUser sourceUser = syncedUsers.get(targetMember.getUsername());
             if (sourceUser != null) {
-              if (!excludedUsers.contains(sourceUser.getUsername())) {
+
+              // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
+              if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
                 GLPermission sourcePermission = sourceGroup.getPermission(sourceUser);
                 GLPermission targetPermission = targetGroup.getPermission(targetMember);
                 if (sourcePermission != targetPermission) {
@@ -246,7 +250,9 @@ public class GitLab extends AbstractApplication {
 
           // Remove blocked users or users which are not members any more
           for (GLUser sourceUser : sourceGroup.getMembers()) {
-            if (!excludedUsers.contains(sourceUser.getUsername())) {
+
+            // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
+            if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
               if (sourceUser.getState() == GLState.BLOCKED || !targetGroup.isMember(sourceUser)) {
                 if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
                   publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
@@ -289,7 +295,9 @@ public class GitLab extends AbstractApplication {
       // Remove all users from GitLab groups which are not available in IDP anymore
       for (GLGroup sourceGroup : sourceGroups) {
         for (GLUser sourceUser : sourceGroup.getMembers()) {
-          if (!excludedUsers.contains(sourceUser.getUsername())) {
+
+          // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
+          if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
             if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
               publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
             }
@@ -308,7 +316,9 @@ public class GitLab extends AbstractApplication {
         LOG.debug("Syncing user of project '{}'", project.getPath());
         List<GLUser> projectUsers = client.getProjectUsers(project);
         for (GLUser user : projectUsers) {
-          if (!excludedUsers.contains(user.getUsername())) {
+
+          // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
+          if (!excludedUsers.contains(user.getUsername()) && !user.isAdmin() && user.isUsingLicenseSeat()) {
             if (!group.isMember(user)) {
               LOG.warn("Removing user '{}' from project '{}' because this user is not a member of group '{}'",
                   user.getUsername(), project.getPath(), group.getPath());

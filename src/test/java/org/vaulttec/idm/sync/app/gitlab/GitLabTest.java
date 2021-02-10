@@ -102,6 +102,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
 
     GLGroup glGroup = new GLGroup();
@@ -154,6 +155,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
     GLUser glUser2 = new GLUser();
@@ -161,6 +163,7 @@ public class GitLabTest {
     glUser2.setUsername("user2");
     glUser2.setName("User 2");
     glUser2.setEmail("user2@acme.com");
+    glUser2.setUsingLicenseSeat(true);
     glUser2.setState(GLState.ACTIVE);
 
     List<GLGroup> glGroups = new ArrayList<>();
@@ -228,6 +231,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
 
@@ -270,6 +274,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
 
@@ -308,12 +313,14 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
     GLUser glUser2 = new GLUser();
     glUser2.setUsername("user2");
     glUser2.setName("User 2");
     glUser2.setEmail("user2@acme.com");
+    glUser2.setUsingLicenseSeat(true);
     glUser2.setState(GLState.ACTIVE);
     glUsers.add(glUser2);
 
@@ -398,6 +405,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.BLOCKED);
     glUsers.add(glUser);
     GLUser glUser2 = new GLUser();
@@ -405,6 +413,7 @@ public class GitLabTest {
     glUser2.setUsername("user2");
     glUser2.setName("User 2");
     glUser2.setEmail("user2@acme.com");
+    glUser2.setUsingLicenseSeat(true);
     glUser2.setState(GLState.BLOCKED);
     glUsers.add(glUser2);
 
@@ -465,6 +474,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.BLOCKED);
     glUsers.add(glUser);
 
@@ -519,6 +529,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
 
@@ -574,6 +585,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
 
@@ -639,12 +651,14 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
     GLUser glUser2 = new GLUser();
     glUser2.setUsername("user2");
     glUser2.setName("User 2");
     glUser2.setEmail("user2@acme.com");
+    glUser2.setUsingLicenseSeat(true);
     glUser2.setState(GLState.ACTIVE);
     glUsers.add(glUser2);
 
@@ -721,6 +735,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
 
@@ -778,6 +793,7 @@ public class GitLabTest {
     glUser.setUsername("user1");
     glUser.setName("User 1");
     glUser.setEmail("user1@acme.com");
+    glUser.setUsingLicenseSeat(true);
     glUser.setState(GLState.ACTIVE);
 
     List<GLGroup> glGroups = new ArrayList<>();
