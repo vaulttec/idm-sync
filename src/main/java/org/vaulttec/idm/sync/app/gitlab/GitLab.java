@@ -184,8 +184,8 @@ public class GitLab extends AbstractApplication {
       // Block existing users which are not associated with GitLab groups anymore
       for (GLUser sourceUser : sourceUsers) {
 
-        // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
-        if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
+        // Skip excluded users, admins and bots
+        if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
           if (sourceUser.getState() == GLState.ACTIVE) {
             if (client.blockUser(sourceUser)) {
               publishSyncEvent(GitLabEvents.userBlocked(sourceUser));
@@ -229,8 +229,8 @@ public class GitLab extends AbstractApplication {
             GLUser sourceUser = syncedUsers.get(targetMember.getUsername());
             if (sourceUser != null) {
 
-              // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
-              if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
+              // Skip excluded users, admins and bots
+              if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
                 GLPermission sourcePermission = sourceGroup.getPermission(sourceUser);
                 GLPermission targetPermission = targetGroup.getPermission(targetMember);
                 if (sourcePermission != targetPermission) {
@@ -251,8 +251,8 @@ public class GitLab extends AbstractApplication {
           // Remove blocked users or users which are not members any more
           for (GLUser sourceUser : sourceGroup.getMembers()) {
 
-            // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
-            if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
+            // Skip excluded users, admins and bots
+            if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
               if (sourceUser.getState() == GLState.BLOCKED || !targetGroup.isMember(sourceUser)) {
                 if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
                   publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
@@ -296,8 +296,8 @@ public class GitLab extends AbstractApplication {
       for (GLGroup sourceGroup : sourceGroups) {
         for (GLUser sourceUser : sourceGroup.getMembers()) {
 
-          // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
-          if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && sourceUser.isUsingLicenseSeat()) {
+          // Skip excluded users, admins and bots
+          if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
             if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
               publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
             }
@@ -317,8 +317,8 @@ public class GitLab extends AbstractApplication {
         List<GLUser> projectUsers = client.getProjectUsers(project);
         for (GLUser user : projectUsers) {
 
-          // Skip excluded users, admins and user which are not using a license seat (e.g. bot accounts and the ghost user)
-          if (!excludedUsers.contains(user.getUsername()) && !user.isAdmin() && user.isUsingLicenseSeat()) {
+          // Skip excluded users, admins and bots
+          if (!excludedUsers.contains(user.getUsername()) && !user.isAdmin() && !user.isBot()) {
             if (!group.isMember(user)) {
               LOG.warn("Removing user '{}' from project '{}' because this user is not a member of group '{}'",
                   user.getUsername(), project.getPath(), group.getPath());

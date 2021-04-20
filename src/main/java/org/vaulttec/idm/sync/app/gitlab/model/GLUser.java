@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.vaulttec.idm.sync.idp.model.IdpUser;
 
@@ -31,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GLUser {
 
+  private static final Pattern PROJECT_BOT = Pattern.compile("project_\\d+_bot");
+
   private final IdpUser idpUser;
   private String id;
   private String username;
@@ -38,8 +41,6 @@ public class GLUser {
   private String email;
   @JsonAlias("is_admin")
   private boolean admin;
-  @JsonAlias("using_license_seat")
-  private boolean usingLicenseSeat;
   private GLState state;
   @JsonAlias("access_level")
   private GLPermission permission;
@@ -92,12 +93,11 @@ public class GLUser {
     this.email = email;
   }
 
-  public boolean isUsingLicenseSeat() {
-    return usingLicenseSeat;
-  }
-
-  public void setUsingLicenseSeat(boolean usingLicenseSeat) {
-    this.usingLicenseSeat = usingLicenseSeat;
+  public boolean isBot() {
+    if (username == null) {
+      return false;
+    }
+    return PROJECT_BOT.matcher(username).find();
   }
 
   public boolean isAdmin() {
