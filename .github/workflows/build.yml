@@ -35,5 +35,5 @@ jobs:
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.APP_NAME }}
           TAG=`if [ "${{ env.GITHUB_REF_SLUG }}" == "master" ]; then echo "latest"; else echo ${{ env.GITHUB_REF_SLUG }}; fi`
 
-          docker build -t $IMAGE_NAME:${{ env.GITHUB_SHA_SHORT }} -t $IMAGE_NAME:$TAG --build-arg JAR_FILE=target/$APP_NAME.jar .
+          docker build -t $IMAGE_NAME:${{ env.GITHUB_SHA_SHORT }} -t $IMAGE_NAME:$TAG --build-arg JAR_FILE=target/${{ secrets.APP_NAME }}.jar .
           docker push $IMAGE_NAME --all-tags
