@@ -25,14 +25,15 @@ jobs:
         run: mvn -B clean package -Dskip.docker.build=true
 
       - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
 
       - name: Building and publich Docker Image
         run: |
-          export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.APP_NAME }}
-          export TAG=`if [ "${{ env.GITHUB_REF_SLUG }}" == "master" ]; then echo "latest"; else echo ${{ env.GITHUB_REF_SLUG }}; fi`
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.APP_NAME }}
+          TAG=`if [ "${{ env.GITHUB_REF_SLUG }}" == "master" ]; then echo "latest"; else echo ${{ env.GITHUB_REF_SLUG }}; fi`
+
           docker build -t $IMAGE_NAME:${{ env.GITHUB_SHA_SHORT }} -t $IMAGE_NAME:$TAG --build-arg JAR_FILE=target/$APP_NAME.jar .
           docker push $IMAGE_NAME --all-tags
