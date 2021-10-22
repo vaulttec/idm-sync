@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: "11"
+          distribution: "adopt"
+
+      - name: Build for push
+        run: mvn -B clean package -Dskip.docker.build=true
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+
+      - name: Building and publich Docker Image
+        run: |
+          export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.APP_NAME }}
+          export TAG=`if [ "${{ env.GITHUB_REF_SLUG }}" == "master" ]; then echo "latest"; else echo ${{ env.GITHUB_REF_SLUG }}; fi`
+          docker build -t $IMAGE_NAME:${{ env.GITHUB_SHA_SHORT }} -t $IMAGE_NAME:$TAG --build-arg JAR_FILE=target/$APP_NAME.jar .
+          docker push $IMAGE_NAME --all-tags
