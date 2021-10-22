@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum GLState {
-  ACTIVE, BLOCKED, LDAP_BLOCKED;
+  ACTIVE, BLOCKED, DEACTIVATED, LDAP_BLOCKED;
 
   @JsonCreator
   public static GLState fromJson(String state) {
