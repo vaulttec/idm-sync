@@ -231,7 +231,7 @@ public abstract class AbstractRestClient extends AbstractClient {
   }
 
   protected void sleep(int sleepSeconds) {
-    LOG.debug("Sleeping {} seconds due to rate limit");
+    LOG.debug("Sleeping {} seconds due to rate limit", sleepSeconds);
     try {
       Thread.sleep(sleepSeconds * 1000);
     } catch (InterruptedException e1) {
