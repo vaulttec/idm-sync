@@ -96,7 +96,7 @@ public abstract class AbstractRestClient extends AbstractClient {
       } catch (TooManyRequests e) {
 
         // API rate limit exceeded: we have to wait and retry
-        sleep();
+        sleep(retryWaitSeconds);
       } catch (Exception e) {
         logException(HttpMethod.GET, uriVariables, url, e);
         return null;
@@ -116,7 +116,7 @@ public abstract class AbstractRestClient extends AbstractClient {
       } catch (TooManyRequests e) {
 
         // API rate limit exceeded: we have to wait and retry
-        sleep();
+        sleep(retryWaitSeconds);
       } catch (Exception e) {
         logException(HttpMethod.GET, uriVariables, url, e);
         return null;
@@ -134,7 +134,7 @@ public abstract class AbstractRestClient extends AbstractClient {
       } catch (TooManyRequests e) {
 
         // API rate limit exceeded: we have to wait and retry
-        sleep();
+        sleep(retryWaitSeconds);
       } catch (Exception e) {
         logException(method, uriVariables, url, e);
         return false;
@@ -151,7 +151,7 @@ public abstract class AbstractRestClient extends AbstractClient {
       } catch (TooManyRequests e) {
 
         // API rate limit exceeded: we have to wait and retry
-        sleep();
+        sleep(retryWaitSeconds);
       } catch (Exception e) {
         logException(HttpMethod.POST, uriVariables, url, e);
         return null;
@@ -170,7 +170,7 @@ public abstract class AbstractRestClient extends AbstractClient {
       } catch (TooManyRequests e) {
 
         // API rate limit exceeded: we have to wait and retry
-        sleep();
+        sleep(retryWaitSeconds);
       } catch (Exception e) {
         logException(method, uriVariables, url, e);
         return false;
@@ -188,7 +188,7 @@ public abstract class AbstractRestClient extends AbstractClient {
       } catch (TooManyRequests e) {
 
         // API rate limit exceeded: we have to wait and retry
-        sleep();
+        sleep(retryWaitSeconds);
       } catch (Exception e) {
         logException(HttpMethod.POST, uriVariables, url, e);
         return null;
@@ -205,7 +205,7 @@ public abstract class AbstractRestClient extends AbstractClient {
       } catch (TooManyRequests e) {
 
         // API rate limit exceeded: we have to wait and retry
-        sleep();
+        sleep(retryWaitSeconds);
       } catch (Exception e) {
         logException(HttpMethod.POST, null, url, e);
         return null;
@@ -214,19 +214,26 @@ public abstract class AbstractRestClient extends AbstractClient {
     return null;
   }
 
-  protected void checkRateLimitRemaining(String rateLimitRemainingValue) {
+  protected void checkRateLimitRemaining(String rateLimitRemainingValue, String rateLimitResetInSeconds) {
+    int rateLimitWaitSeconds;
     try {
-      if (Integer.parseInt(rateLimitRemainingValue) == 0) {
-        sleep();
+      rateLimitWaitSeconds = Integer.parseInt(rateLimitResetInSeconds);
+    } catch (NumberFormatException e) {
+      rateLimitWaitSeconds = retryWaitSeconds;  // default wait time
+    }
+    try {
+      if (Integer.parseInt(rateLimitRemainingValue) < perPage) {
+        sleep(rateLimitWaitSeconds);
       }
     } catch (NumberFormatException e) {
-      //Ignore
+      // Ignore
     }
   }
 
-  private void sleep() {
+  protected void sleep(int sleepSeconds) {
+    LOG.debug("Sleeping {} seconds due to rate limit");
     try {
-      Thread.sleep(retryWaitSeconds * 1000);
+      Thread.sleep(sleepSeconds * 1000);
     } catch (InterruptedException e1) {
       // Ignore
     }

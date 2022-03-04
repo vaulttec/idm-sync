@@ -31,6 +31,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException.TooManyRequests;
 import org.vaulttec.idm.sync.app.AbstractRestClient;
 import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
 import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
@@ -73,22 +74,33 @@ public class MattermostClient extends AbstractRestClient {
     uriVariables.put("perPage", perPageAsString());
     try {
       List<T> entities;
-      ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
-          uriVariables);
-      if (response.getBody().size() < perPage) {
-        entities = response.getBody();
-      } else {
-        entities = new ArrayList<>(response.getBody());
-        do {
-          checkRateLimitRemaining(response.getHeaders().getFirst("X-Ratelimit-Remaining"));
-          page++;
-          uriVariables.put("page", Integer.toString(page));
+      ResponseEntity<List<T>> response = null;
+      for (int retries = 1; retries >= 0; retries--) {
+        try {
           response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference, uriVariables);
-          entities.addAll(response.getBody());
-        } while (response.getBody().size() == perPage);
+        } catch (TooManyRequests e) {
+
+          // API rate limit exceeded: we have to wait and retry
+          sleep(retryWaitSeconds);
+        }
+      }
+      if (response != null) {
+        if (response.getBody().size() < perPage) {
+          entities = response.getBody();
+        } else {
+          entities = new ArrayList<>(response.getBody());
+          do {
+            checkRateLimitRemaining(response.getHeaders().getFirst("X-Ratelimit-Remaining"),
+                response.getHeaders().getFirst("X-Ratelimit-Reset"));
+            page++;
+            uriVariables.put("page", Integer.toString(page));
+            response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference, uriVariables);
+            entities.addAll(response.getBody());
+          } while (response.getBody().size() == perPage);
+          return entities;
+        }
         return entities;
       }
-      return entities;
     } catch (RestClientException e) {
       LOG.error("API call {} '{}' {} failed", "GET", url, uriVariables, e);
     }
