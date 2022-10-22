@@ -17,16 +17,10 @@
  */
 package org.vaulttec.idm.sync.app.mattermost;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,18 +29,24 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StringUtils;
 import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
 import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
 import org.vaulttec.idm.sync.app.mattermost.model.MMTeamChannel;
 import org.vaulttec.idm.sync.app.mattermost.model.MMUser;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-public class MattermostClientIntegrationTest {
+class MattermostClientIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(MattermostClientIntegrationTest.class);
 
@@ -55,8 +55,8 @@ public class MattermostClientIntegrationTest {
 
   private MattermostClient client;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     MattermostClientBuilder builder = new MattermostClientBuilder(env.getProperty("apps[1].config.serverUrl"))
         .perPage(Integer.parseInt(env.getProperty("apps[1].config.perPage")))
         .personalAccessToken(env.getProperty("apps[1].config.personalAccessToken"));
@@ -68,7 +68,7 @@ public class MattermostClientIntegrationTest {
   }
 
   @Test
-  public void testGetGroupsWithMembers() {
+  void testGetGroupsWithMembers() {
     List<MMTeam> teams = client.getTeamsWithMembers();
     assertThat(teams).isNotNull().isNotEmpty();
     for (MMTeam team : teams) {
@@ -80,7 +80,7 @@ public class MattermostClientIntegrationTest {
   }
 
   @Test
-  public void testGetUsers() {
+  void testGetUsers() {
     List<MMUser> users = client.getUsers();
     assertThat(users).isNotNull().isNotEmpty();
     for (MMUser user : users) {
@@ -89,23 +89,23 @@ public class MattermostClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testCreateUser() {
+  @Disabled
+  void testCreateUser() {
     MMUser user = client.createUser("x000042", "John", "Doo", "john.doo@acme.com", null, null);
     assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000042");
     assertTrue(client.updateUserAuthentication(user, "gitlab", "x000042"));
   }
 
   @Test
-  @Ignore
-  public void testCreateTeam() {
+  @Disabled
+  void testCreateTeam() {
     MMTeam team = client.createTeam("test", "test Team");
     assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test");
   }
 
   @Test
-  @Ignore
-  public void testAddMemberToTeam() {
+  @Disabled
+  void testAddMemberToTeam() {
     MMTeam team = client.createTeam("test2", "test2 Team");
     assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test2");
     MMUser user = client.createUser("x000043", "John", "Doo3", "john.doo3@acme.com", "gitlab", "x000043");
@@ -114,8 +114,8 @@ public class MattermostClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testUpdateTeamMemberRoles() {
+  @Disabled
+  void testUpdateTeamMemberRoles() {
     MMTeam team = client.createTeam("test3", "test3 Team");
     assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test3");
     MMUser user = client.createUser("x000044", "John", "Doo4", "john.doo2@acme.com", "gitlab", "x000044");
@@ -125,8 +125,8 @@ public class MattermostClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testRemoveMemberFromTeam() {
+  @Disabled
+  void testRemoveMemberFromTeam() {
     MMTeam team = client.createTeam("test4", "test4 Team");
     assertThat(team).isNotNull().hasFieldOrPropertyWithValue("name", "test4");
     MMUser user = client.createUser("x000045", "John", "Doo5", "john.doo5@acme.com", "gitlab", "x000045");
@@ -136,8 +136,8 @@ public class MattermostClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testUpdateUserActiveStatus() {
+  @Disabled
+  void testUpdateUserActiveStatus() {
     MMUser user = client.createUser("x000046", "John", "Doo6", "john.doo6@acme.com", "gitlab", "x000046");
     assertThat(user).isNotNull().hasFieldOrPropertyWithValue("username", "x000046");
     assertTrue(client.updateUserActiveStatus(user, false));
@@ -145,7 +145,7 @@ public class MattermostClientIntegrationTest {
   }
 
   @Test
-  public void testTeamChannels() {
+  void testTeamChannels() {
     List<MMTeam> teams = client.getTeamsWithMembers();
     assertThat(teams).isNotNull().isNotEmpty();
     MMTeam team = teams.get(0);

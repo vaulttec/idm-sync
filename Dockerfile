@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:17-alpine
 RUN adduser -S -u 1000 springboot && \
     mkdir -p /app/logs && \
     chown -R springboot /app

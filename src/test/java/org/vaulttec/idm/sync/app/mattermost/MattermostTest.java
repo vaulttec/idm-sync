@@ -17,24 +17,10 @@
  */
 package org.vaulttec.idm.sync.app.mattermost;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.vaulttec.idm.sync.app.gitlab.GitLab;
@@ -44,8 +30,14 @@ import org.vaulttec.idm.sync.app.mattermost.model.MMUser;
 import org.vaulttec.idm.sync.idp.model.IdpGroup;
 import org.vaulttec.idm.sync.idp.model.IdpUser;
 
-@RunWith(MockitoJUnitRunner.class)
-public class MattermostTest {
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class MattermostTest {
 
   private static final String AUTH_SERVICE = "gitlab";
   private static final String AUTH_UID_ATTRIBUTE = GitLab.USER_ID_ATTRIBUTE;
@@ -54,8 +46,8 @@ public class MattermostTest {
   private AuditEventRepository eventRepository;
   private Mattermost app;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     client = mock(MattermostClient.class);
     eventRepository = mock(AuditEventRepository.class);
     app = new MattermostBuilder(client, eventRepository)
@@ -64,7 +56,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncCreateNewTeam() {
+  void testSyncCreateNewTeam() {
     MMTeam team = new MMTeam();
     team.setName("team1");
 
@@ -95,7 +87,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncCreateNewTeamAndUser() {
+  void testSyncCreateNewTeamAndUser() {
     MMUser mmUser = new MMUser();
     mmUser.setId("1");
     mmUser.setUsername("user1");
@@ -147,7 +139,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncCreateNewUserInExistingTeam() {
+  void testSyncCreateNewUserInExistingTeam() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setUsername("user1");
@@ -224,7 +216,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncUserWithoutGroup() {
+  void testSyncUserWithoutGroup() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setUsername("user1");
@@ -266,7 +258,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncDeletedTeamWithUser() {
+  void testSyncDeletedTeamWithUser() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setUsername("user1");
@@ -304,7 +296,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncTeamWithBlockedUsers() {
+  void testSyncTeamWithBlockedUsers() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setUsername("user1");
@@ -365,7 +357,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncTeamWithExistingBlockedUser() {
+  void testSyncTeamWithExistingBlockedUser() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setUsername("user1");
@@ -417,7 +409,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncTeamWithRemovedUsers() {
+  void testSyncTeamWithRemovedUsers() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setId("1");
@@ -481,7 +473,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncUpdateUserAttributesForExistingUser() {
+  void testSyncUpdateUserAttributesForExistingUser() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setId("1");
@@ -537,7 +529,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncDoNotDeactivateSystemAdmins() {
+  void testSyncDoNotDeactivateSystemAdmins() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setId("1");
@@ -565,7 +557,7 @@ public class MattermostTest {
   }
 
   @Test
-  public void testSyncDoNotDeactivateBots() {
+  void testSyncDoNotDeactivateBots() {
     List<MMUser> mmUsers = new ArrayList<>();
     MMUser mmUser = new MMUser();
     mmUser.setId("1");

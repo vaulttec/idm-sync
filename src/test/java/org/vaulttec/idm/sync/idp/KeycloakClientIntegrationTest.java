@@ -17,19 +17,10 @@
  */
 package org.vaulttec.idm.sync.idp;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,18 +29,23 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StringUtils;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClient;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClientBuilder;
 import org.vaulttec.idm.sync.idp.model.IdpGroup;
 import org.vaulttec.idm.sync.idp.model.IdpUser;
 
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-public class KeycloakClientIntegrationTest {
+class KeycloakClientIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(KeycloakClientIntegrationTest.class);
 
@@ -60,8 +56,8 @@ public class KeycloakClientIntegrationTest {
 
   private KeycloakClient client;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     KeycloakClientBuilder builder = new KeycloakClientBuilder(env.getProperty("idp.config.serverUrl"))
         .perPage(Integer.valueOf(env.getProperty("idp.config.perPage"))).realm(env.getProperty("idp.config.realm"))
         .clientId(env.getProperty("idp.config.client.id")).clientSecret(env.getProperty("idp.config.client.secret"));
@@ -74,8 +70,7 @@ public class KeycloakClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testGetUsers() {
+  void testGetUsers() {
     List<IdpUser> users = client.getUsers(null);
     assertThat(users).isNotNull().isNotEmpty();
     for (IdpUser user : users) {
@@ -84,8 +79,8 @@ public class KeycloakClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testUpdateUserAttributes() {
+  @Disabled
+  void testUpdateUserAttributes() {
     List<IdpUser> users = client.getUsers(USER_SEARCH);
     assertThat(users).isNotNull().isNotEmpty();
 
@@ -113,8 +108,8 @@ public class KeycloakClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testUpdateRequiredActions() {
+  @Disabled
+  void testUpdateRequiredActions() {
     List<IdpUser> users = client.getUsers(USER_SEARCH);
     assertThat(users).isNotNull().isNotEmpty();
     List<String> savedRequiredActions = users.get(0).getRequiredActions();
@@ -140,7 +135,7 @@ public class KeycloakClientIntegrationTest {
   }
 
   @Test
-  public void testGetGroups() {
+  void testGetGroups() {
     List<IdpGroup> groups = client.getGroups(env.getProperty("apps[0].config.group.search"));
     assertThat(groups).isNotNull().isNotEmpty();
     for (IdpGroup group : groups) {
@@ -149,8 +144,8 @@ public class KeycloakClientIntegrationTest {
   }
 
   @Test
-  @Ignore
-  public void testUpdateGroupAttributes() {
+  @Disabled
+  void testUpdateGroupAttributes() {
     List<IdpGroup> groups = client.getGroups(null);
     assertThat(groups).isNotNull().isNotEmpty();
     Map<String, List<String>> attributes = new HashMap<>();
@@ -161,7 +156,7 @@ public class KeycloakClientIntegrationTest {
   }
 
   @Test
-  public void testGetGroupMembers() {
+  void testGetGroupMembers() {
     List<IdpGroup> groups = client.getGroups(env.getProperty("apps[0].config.group.search"));
     assertThat(groups).isNotNull().isNotEmpty();
     for (IdpGroup group : groups) {

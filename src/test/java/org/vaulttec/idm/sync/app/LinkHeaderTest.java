@@ -17,17 +17,17 @@
  */
 package org.vaulttec.idm.sync.app;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.vaulttec.idm.sync.app.LinkHeader.Link;
 
-public class LinkHeaderTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class LinkHeaderTest {
 
   @Test
-  public void testParse() {
+  void testParse() {
     String linkValue = "</resource?page=1&per_page=100>; rel=\"first\", "
         + "</resource?page=3&per_page=100>; rel=\"prev\", " //
         + "</resource?page=5&per_page=100>; rel=\"next\", " //

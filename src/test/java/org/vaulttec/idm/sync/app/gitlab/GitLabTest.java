@@ -17,33 +17,21 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
-import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
-import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
-import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
-import org.vaulttec.idm.sync.app.gitlab.model.GLState;
-import org.vaulttec.idm.sync.app.gitlab.model.GLUser;
+import org.vaulttec.idm.sync.app.gitlab.model.*;
 import org.vaulttec.idm.sync.idp.model.IdpGroup;
 import org.vaulttec.idm.sync.idp.model.IdpUser;
 
-public class GitLabTest {
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class GitLabTest {
 
   private static final String PROVIDER_NAME = "ldapmain";
   private static final String EXTERNAL_UID_ATTRIBUTE = "LDAP_ENTRY_DN";
@@ -55,8 +43,8 @@ public class GitLabTest {
   private AuditEventRepository eventRepository;
   private GitLab app;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     client = mock(GitLabClient.class);
     eventRepository = mock(AuditEventRepository.class);
     app = new GitLabBuilder(client, eventRepository).groupRegExp("APP_GIT_(?<groupPath>\\w*)_(?<permission>\\w*)")
@@ -64,7 +52,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncCreateNewGroup() {
+  void testSyncCreateNewGroup() {
     GLGroup glGroup = new GLGroup();
     glGroup.setPath("grp1");
     glGroup.setName("grp1");
@@ -96,7 +84,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncCreateNewGroupAndUser() {
+  void testSyncCreateNewGroupAndUser() {
     GLUser glUser = new GLUser();
     glUser.setId(GITLAB_ID);
     glUser.setUsername("user1");
@@ -148,7 +136,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncCreateNewUserInExistingGroup() {
+  void testSyncCreateNewUserInExistingGroup() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setUsername("user1");
@@ -222,7 +210,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncUserWithoutGroup() {
+  void testSyncUserWithoutGroup() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setUsername("user1");
@@ -264,7 +252,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncDeletedGroupWithUser() {
+  void testSyncDeletedGroupWithUser() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setUsername("user1");
@@ -302,7 +290,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncGroupWithRemovedUsers() {
+  void testSyncGroupWithRemovedUsers() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setUsername("user1");
@@ -391,7 +379,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncGroupWithBlockedUsers() {
+  void testSyncGroupWithBlockedUsers() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setId(GITLAB_ID);
@@ -458,7 +446,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncGroupWithExistingBlockedUser() {
+  void testSyncGroupWithExistingBlockedUser() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setId(GITLAB_ID);
@@ -513,7 +501,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncGroupWithSkippedSubGroup() {
+  void testSyncGroupWithSkippedSubGroup() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setUsername("user1");
@@ -567,7 +555,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncUserWithMultiplePermissions() {
+  void testSyncUserWithMultiplePermissions() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setId(GITLAB_ID);
@@ -633,7 +621,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncManuallyAddedUsersInProject() {
+  void testSyncManuallyAddedUsersInProject() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setUsername("user1");
@@ -714,7 +702,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncUpdateUserAttributesForExistingUser() {
+  void testSyncUpdateUserAttributesForExistingUser() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setId(GITLAB_ID);
@@ -771,7 +759,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncCrateUserWithMultipleGroups() {
+  void testSyncCrateUserWithMultipleGroups() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setId(GITLAB_ID);
@@ -836,7 +824,7 @@ public class GitLabTest {
   }
 
   @Test
-  public void testSyncWithBotUser() {
+  void testSyncWithBotUser() {
     List<GLUser> glUsers = new ArrayList<>();
     GLUser glUser = new GLUser();
     glUser.setId(GITLAB_ID);

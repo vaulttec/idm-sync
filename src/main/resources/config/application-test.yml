@@ -10,15 +10,15 @@ sync:
   rate: 3000
 
 keycloak:
-  serverUrl: http://torstens-macbook-pro.local:8080
+  serverUrl: http://torstens-macbook-pro.local:8082
   clientSecret: 47cae011-870e-4727-a5f0-1f92323bf829
 
 gitlab:
   serverUrl: http://torstens-macbook-pro.local:8083
-  personalAccessToken: d9FPuic1fFd-gzNvpmw4
+  personalAccessToken: glpat-SbYhBX9E36_HS2jA4YWx
   providerName: ldapmain
   providerUidAttribute: LDAP_ENTRY_DN
 
 mattermost:
   serverUrl: http://torstens-macbook-pro.local:8084
-  personalAccessToken: pdybh3z18bbb9jutubwhtyt9te
+  personalAccessToken: epkehkashtf5zjwk73edk9jixw

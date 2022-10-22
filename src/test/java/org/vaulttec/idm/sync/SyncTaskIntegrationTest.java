@@ -17,24 +17,24 @@
  */
 package org.vaulttec.idm.sync;
 
-import java.util.List;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.vaulttec.idm.sync.app.Application;
 import org.vaulttec.idm.sync.idp.IdentityProvider;
 
+import java.util.List;
+
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-public class SyncTaskIntegrationTest {
+class SyncTaskIntegrationTest {
 
   @Autowired
   private IdentityProvider idp;
@@ -44,7 +44,7 @@ public class SyncTaskIntegrationTest {
   private SyncConfig syncConfig;
 
   @Test
-  public void testSync() throws InstantiationException, IllegalAccessException {
+  void testSync() throws InstantiationException, IllegalAccessException {
     SyncTask task = new SyncTask(idp, applications, syncConfig);
     task.sync();
   }

@@ -17,13 +17,9 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,20 +28,19 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StringUtils;
-import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
-import org.vaulttec.idm.sync.app.gitlab.model.GLIdentity;
-import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
-import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
-import org.vaulttec.idm.sync.app.gitlab.model.GLState;
-import org.vaulttec.idm.sync.app.gitlab.model.GLUser;
+import org.vaulttec.idm.sync.app.gitlab.model.*;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-public class GitLabClientIntegrationTest {
+class GitLabClientIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(GitLabClientIntegrationTest.class);
 
@@ -54,8 +49,8 @@ public class GitLabClientIntegrationTest {
 
   private GitLabClient client;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     GitLabClientBuilder builder = new GitLabClientBuilder(env.getProperty("apps[0].config.serverUrl"))
         .perPage(Integer.parseInt(env.getProperty("apps[0].config.perPage")))
         .personalAccessToken(env.getProperty("apps[0].config.personalAccessToken"));
@@ -67,7 +62,7 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  public void testGetGroupsWithMembers() {
+  void testGetGroupsWithMembers() {
     List<GLGroup> groups = client.getGroupsWithMembers(null, false);
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
@@ -82,7 +77,7 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  public void testGetUsers() {
+  void testGetUsers() {
     List<GLUser> users = client.getUsers(null);
     assertThat(users).isNotNull().isNotEmpty();
     for (GLUser user : users) {
@@ -91,7 +86,7 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  public void testGetProjectsFromGroup() {
+  void testGetProjectsFromGroup() {
     List<GLGroup> groups = client.getGroups(null, false);
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
@@ -105,7 +100,7 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  public void testGetUsersFromProject() {
+  void testGetUsersFromProject() {
     List<GLGroup> groups = client.getGroups(null, false);
     assertThat(groups).isNotNull().isNotEmpty();
     for (GLGroup group : groups) {
@@ -121,8 +116,8 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  public void testCreateAndDeleteUser() {
-    GLUser user = client.createUser("x000042", "John Doo", "john.doo@acme.com", null, null);
+  void testCreateAndDeleteUser() {
+    GLUser user = client.createUser("x000042", "Jim Doo", "jim.doo@acme.com", null, null);
     assertThat(user).isNotNull();
     assertThat(client.getUsers("x000042")).isNotNull();
     assertThat(client.deleteUser(user, true)).isTrue();
@@ -132,11 +127,11 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  public void testAddIdentityToUser() {
-    GLUser user = client.createUser("x000042", "John Doo", "john.doo@acme.com", "foo1", "bar1");
+  void testAddIdentityToUser() {
+    GLUser user = client.createUser("x000043", "Jane Doo", "jane.doo@acme.com", "foo1", "bar1");
     assertThat(user).isNotNull();
     assertThat(client.addIdentityToUser(user, "foo2", "bar2")).isTrue();
-    List<GLUser> users = client.getUsers("x000042");
+    List<GLUser> users = client.getUsers("x000043");
     assertThat(users).isNotNull().hasSize(1);
     List<GLIdentity> identities = users.get(0).getIdentities();
     assertThat(identities).isNotNull().hasSize(2);
@@ -146,7 +141,7 @@ public class GitLabClientIntegrationTest {
   }
 
   @Test
-  public void testGroupStatistics() {
+  void testGroupStatistics() {
     List<GLGroup> groups = client.getGroups(null, true);
     assertThat(groups).isNotNull().isNotEmpty();
     GLGroup group = groups.get(0);

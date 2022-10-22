@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -30,6 +31,9 @@ public abstract class AbstractSyncEventPublisher {
   private static final Logger AUDIT_LOG = LoggerFactory.getLogger("AUDIT_LOG");
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
+  static {
+    MAPPER.registerModule(new JavaTimeModule());
+  }
 
   private final AuditEventRepository eventRepository;
 

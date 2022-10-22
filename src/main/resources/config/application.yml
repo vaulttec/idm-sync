@@ -9,9 +9,10 @@ spring:
         csv: text/csv
       favor-path-extension: true
     pathmatch:
-      use-registered-suffix-pattern: true
+      use-suffix-pattern: true
+      matching-strategy: ant-path-matcher
   jackson:
-    property-naming-strategy: CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
+    property-naming-strategy: SNAKE_CASE
   main:
     banner-mode: 'OFF'
 

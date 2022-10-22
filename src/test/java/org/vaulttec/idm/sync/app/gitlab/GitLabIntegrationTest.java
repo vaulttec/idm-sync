@@ -17,22 +17,16 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Comparator;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StringUtils;
 import org.vaulttec.idm.sync.app.model.AppStatistics;
 import org.vaulttec.idm.sync.idp.keycloak.KeycloakClient;
@@ -40,11 +34,17 @@ import org.vaulttec.idm.sync.idp.keycloak.KeycloakClientBuilder;
 import org.vaulttec.idm.sync.idp.model.IdpGroup;
 import org.vaulttec.idm.sync.idp.model.IdpUser;
 
+import java.util.Comparator;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @ActiveProfiles("test")
 @IfProfileValue(name = "run.integration.tests", value = "true")
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-public class GitLabIntegrationTest {
+class GitLabIntegrationTest {
 
   private static final Comparator<String> INTEGER_STRING_COMPARATOR = new Comparator<String>() {
     public int compare(String s1, String s2) {
@@ -57,8 +57,8 @@ public class GitLabIntegrationTest {
   private KeycloakClient kcClient;
   private GitLab gitlab;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     KeycloakClientBuilder kcBuilder = new KeycloakClientBuilder(env.getProperty("idp.config.serverUrl"))
         .realm(env.getProperty("idp.config.realm")).clientId(env.getProperty("idp.config.client.id"))
         .clientSecret(env.getProperty("idp.config.client.secret"));
@@ -88,7 +88,7 @@ public class GitLabIntegrationTest {
   }
 
   @Test
-  public void testSync() {
+  void testSync() {
     List<IdpGroup> groups = kcClient.getGroups(env.getProperty("apps[0].config.group.search"));
     assertThat(groups).isNotNull();
     for (IdpGroup group : groups) {
@@ -103,7 +103,7 @@ public class GitLabIntegrationTest {
   }
 
   @Test
-  public void testStatistics() {
+  void testStatistics() {
     List<AppStatistics> statisticsList = gitlab.getStatistics();
     assertThat(statisticsList).isNotNull().isNotEmpty();
     AppStatistics statistics = statisticsList.get(0);
