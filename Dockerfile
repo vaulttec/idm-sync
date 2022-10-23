@@ -1,4 +1,4 @@
-FROM openjdk:17-alpine
+FROM eclipse-temurin:17-jre
 RUN adduser -S -u 1000 springboot && \
     mkdir -p /app/logs && \
     chown -R springboot /app
@@ -8,5 +8,4 @@ COPY ${JAR_FILE} /app/app.jar
 WORKDIR /app
 VOLUME /tmp /app/logs
 EXPOSE 8080
-ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
-ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dlogging.path=/app/logs -jar /app/app.jar
+ENTRYPOINT exec java -Djava.security.egd=file:/dev/./urandom -Dlogging.path=/app/logs -jar /app/app.jar
