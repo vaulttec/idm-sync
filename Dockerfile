@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-alpine
 RUN adduser -S -u 1000 springboot && \
     mkdir -p /app/logs && \
     chown -R springboot /app
