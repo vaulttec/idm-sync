@@ -1,11 +1,11 @@
 FROM eclipse-temurin:17-jre-alpine
-RUN adduser -S -u 1000 springboot && \
+RUN adduser -S -u 1000 spring && \
     mkdir -p /app/logs && \
-    chown -R springboot /app
-USER springboot
+    chown -R spring /app
+USER spring
 ARG JAR_FILE
 COPY ${JAR_FILE} /app/app.jar
 WORKDIR /app
 VOLUME /tmp /app/logs
 EXPOSE 8080
-ENTRYPOINT exec java -Djava.security.egd=file:/dev/./urandom -Dlogging.path=/app/logs -jar /app/app.jar
+ENTRYPOINT exec java $JAVA_OPTS -Dlogging.file.path=/app/logs -jar /app/app.jar

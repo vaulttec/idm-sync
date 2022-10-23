@@ -1,6 +1,8 @@
 spring:
   application:
     name: idm-sync
+  main:
+    banner-mode: 'OFF'
   mvc:
     contentnegotiation:
       media-types:
@@ -13,15 +15,16 @@ spring:
       matching-strategy: ant-path-matcher
   jackson:
     property-naming-strategy: SNAKE_CASE
-  main:
-    banner-mode: 'OFF'
 
 logging:
-  file:
-    max-history: 10
   level:
     org.springframework: info
     org.vaulttec: info
+
+server:
+  error:
+    include-message: always
+    include-stacktrace: on_param
 
 proxy:
   host:
