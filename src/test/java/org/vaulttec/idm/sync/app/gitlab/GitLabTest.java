@@ -831,6 +831,7 @@ class GitLabTest {
     glUser.setUsername("project_123_bot");
     glUser.setName("Project Bot");
     glUser.setEmail("project_123_bot@example.com");
+    glUser.setBot(Boolean.TRUE);
     glUser.setState(GLState.ACTIVE);
     glUsers.add(glUser);
 

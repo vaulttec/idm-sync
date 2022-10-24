@@ -18,7 +18,7 @@
 package org.vaulttec.idm.sync.idp.keycloak;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -108,7 +108,7 @@ public class KeycloakClient extends AbstractRestClient {
    * account</a>.
    */
   public boolean authenticate() {
-    LOG.info("Authenticating");
+    LOG.debug("Authenticating");
     String apiCall = "/realms/{realm}/protocol/openid-connect/token";
     Map<String, String> uriVariables = createUriVariables("realm", realm);
     ObjectNode node = makeWriteApiCall(apiCall, loginEntity, ObjectNode.class, uriVariables);
@@ -149,7 +149,7 @@ public class KeycloakClient extends AbstractRestClient {
     updateMultiValueMap(user.getAttributes(), attributes);
     try {
       JsonNode userAttributesNode = mapper.valueToTree(user.getAttributes());
-      HttpEntity<String> entity = new HttpEntity<String>(
+      HttpEntity<String> entity = new HttpEntity<>(
           "{\"attributes\": " + mapper.writeValueAsString(userAttributesNode) + "}", authenticationEntity.getHeaders());
       return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
     } catch (IOException e) {
@@ -167,7 +167,7 @@ public class KeycloakClient extends AbstractRestClient {
     Map<String, String> uriVariables = createUriVariables("realm", realm, "userId", user.getId());
     try {
       JsonNode requiredActionsNode = mapper.valueToTree(requiredActions);
-      HttpEntity<String> entity = new HttpEntity<String>(
+      HttpEntity<String> entity = new HttpEntity<>(
           "{\"requiredActions\": " + mapper.writeValueAsString(requiredActionsNode) + "}",
           authenticationEntity.getHeaders());
       return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
@@ -201,7 +201,7 @@ public class KeycloakClient extends AbstractRestClient {
     updateMultiValueMap(group.getAttributes(), attributes);
     try {
       JsonNode attributesNode = mapper.valueToTree(group.getAttributes());
-      HttpEntity<String> entity = new HttpEntity<String>(
+      HttpEntity<String> entity = new HttpEntity<>(
           "{\"attributes\": " + mapper.writeValueAsString(attributesNode) + "}", authenticationEntity.getHeaders());
       return makeWriteApiCall(apiCall, HttpMethod.PUT, entity, uriVariables);
     } catch (IOException e) {
@@ -223,6 +223,7 @@ public class KeycloakClient extends AbstractRestClient {
     return makeReadApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
+  @Override
   protected void prepareAuthenticationEntity(String headerName, String headerValue) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -234,9 +235,9 @@ public class KeycloakClient extends AbstractRestClient {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     String auth = clientId + ":" + clientSecret;
-    String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(Charset.forName("US-ASCII")));
+    String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.US_ASCII));
     headers.set("Authorization", "Basic " + encodedAuth);
-    return new HttpEntity<String>("grant_type=client_credentials", headers);
+    return new HttpEntity<>("grant_type=client_credentials", headers);
   }
 
   private void updateMultiValueMap(Map<String, List<String>> existing, Map<String, List<String>> additional) {

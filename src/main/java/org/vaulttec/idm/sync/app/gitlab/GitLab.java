@@ -17,16 +17,6 @@
  */
 package org.vaulttec.idm.sync.app.gitlab;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
@@ -42,6 +32,16 @@ import org.vaulttec.idm.sync.idp.model.IdpGroup;
 import org.vaulttec.idm.sync.idp.model.IdpGroupRepresentation;
 import org.vaulttec.idm.sync.idp.model.IdpUser;
 import org.vaulttec.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 public class GitLab extends AbstractApplication {
 
@@ -102,18 +102,20 @@ public class GitLab extends AbstractApplication {
     Map<String, GLGroup> targetGroups = new HashMap<>();
     Map<String, GLUser> targetUsers = new HashMap<>();
     retrieveTargetGroupsAndUsers(idpGroups, targetGroups, targetUsers);
-    Map<String, GLUser> syncedUsers = syncUsers(targetUsers);
+    Map<String, GLUser> allUsers = new HashMap<>();
+    Map<String, GLUser> syncedUsers = syncUsers(targetUsers, allUsers);
     if (syncedUsers != null) {
-      if (syncGroups(targetGroups, syncedUsers)) {
+      if (syncGroups(targetGroups, syncedUsers, allUsers)) {
         return true;
       }
     }
     return false;
   }
 
-  protected Map<String, GLUser> syncUsers(Map<String, GLUser> targetUsers) {
+  protected Map<String, GLUser> syncUsers(Map<String, GLUser> targetUsers, Map<String, GLUser> allUsers) {
     List<GLUser> sourceUsers = client.getUsers(null);
     if (sourceUsers != null) {
+      sourceUsers.stream().forEach(u -> allUsers.put(u.getId(), u));
       Map<String, GLUser> syncedUsers = new HashMap<>();
 
       // Delete users with temporary email created during first SSO access
@@ -130,7 +132,7 @@ public class GitLab extends AbstractApplication {
       // Merge identities of deleted user with the corresponding primary user
       for (GLUser deletedUser : deletedUsers) {
 
-        // Strip the trailing number from the user name
+        // Strip the trailing number from the username
         String deletedUsername = deletedUser.getUsername().substring(0, deletedUser.getUsername().length() - 1);
 
         // Search for the primary user
@@ -183,9 +185,7 @@ public class GitLab extends AbstractApplication {
 
       // Block existing users which are not associated with GitLab groups anymore
       for (GLUser sourceUser : sourceUsers) {
-
-        // Skip excluded users, admins and bots
-        if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
+        if (isValidUser(sourceUser)) {
           if (sourceUser.getState() == GLState.ACTIVE) {
             if (client.blockUser(sourceUser)) {
               publishSyncEvent(GitLabEvents.userBlocked(sourceUser));
@@ -212,7 +212,14 @@ public class GitLab extends AbstractApplication {
     }
   }
 
-  protected boolean syncGroups(Map<String, GLGroup> targetGroups, Map<String, GLUser> syncedUsers) {
+  /**
+   * Skip excluded users, admins and bots.
+   */
+  protected boolean isValidUser(GLUser user) {
+    return user!= null && !excludedUsers.contains(user.getUsername()) && !user.isAdmin() && !user.isBot();
+  }
+
+  protected boolean syncGroups(Map<String, GLGroup> targetGroups, Map<String, GLUser> syncedUsers, Map<String, GLUser> allUsers) {
     List<GLGroup> sourceGroups = client.getGroupsWithMembers(null, false);
     if (sourceGroups != null) {
 
@@ -221,38 +228,33 @@ public class GitLab extends AbstractApplication {
 
       // Update memberships of existing groups
       for (GLGroup sourceGroup : sourceGroups) {
+        LOG.debug("Syncing group '{}'", sourceGroup.getPath());
         GLGroup targetGroup = targetGroups.get(sourceGroup.getPath());
         if (targetGroup != null) {
 
           // Fix permissions of existing members
           for (GLUser targetMember : targetGroup.getMembers()) {
             GLUser sourceUser = syncedUsers.get(targetMember.getUsername());
-            if (sourceUser != null) {
-
-              // Skip excluded users, admins and bots
-              if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
-                GLPermission sourcePermission = sourceGroup.getPermission(sourceUser);
-                GLPermission targetPermission = targetGroup.getPermission(targetMember);
-                if (sourcePermission != targetPermission) {
-                  if (sourcePermission != null) {
-                    if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
-                      publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
-                    }
+            if (isValidUser(sourceUser)) {
+              GLPermission sourcePermission = sourceGroup.getPermission(sourceUser);
+              GLPermission targetPermission = targetGroup.getPermission(targetMember);
+              if (sourcePermission != targetPermission) {
+                if (sourcePermission != null) {
+                  if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
+                    publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
                   }
-                  if (client.addMemberToGroup(sourceGroup, sourceUser, targetPermission)) {
-                    publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, sourceGroup, targetPermission));
-                  }
-                  sourceGroup.addMember(sourceUser, targetPermission);
                 }
+                if (client.addMemberToGroup(sourceGroup, sourceUser, targetPermission)) {
+                  publishSyncEvent(GitLabEvents.userAddedToGroup(sourceUser, sourceGroup, targetPermission));
+                }
+                sourceGroup.addMember(sourceUser, targetPermission);
               }
             }
           }
 
           // Remove blocked users or users which are not members any more
           for (GLUser sourceUser : sourceGroup.getMembers()) {
-
-            // Skip excluded users, admins and bots
-            if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
+            if (isValidUser(allUsers.get(sourceUser.getId()))) {
               if (sourceUser.getState() == GLState.BLOCKED || !targetGroup.isMember(sourceUser)) {
                 if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
                   publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
@@ -263,7 +265,7 @@ public class GitLab extends AbstractApplication {
 
           // Optionally remove manually added users from projects
           if (removeProjectMembers) {
-            syncProjects(sourceGroup, syncedUsers);
+            syncProjects(sourceGroup, allUsers);
           }
         }
       }
@@ -295,9 +297,7 @@ public class GitLab extends AbstractApplication {
       // Remove all users from GitLab groups which are not available in IDP anymore
       for (GLGroup sourceGroup : sourceGroups) {
         for (GLUser sourceUser : sourceGroup.getMembers()) {
-
-          // Skip excluded users, admins and bots
-          if (!excludedUsers.contains(sourceUser.getUsername()) && !sourceUser.isAdmin() && !sourceUser.isBot()) {
+          if (isValidUser(allUsers.get(sourceUser.getId()))) {
             if (client.removeMemberFromGroup(sourceGroup, sourceUser)) {
               publishSyncEvent(GitLabEvents.userRemovedFromGroup(sourceUser, sourceGroup));
             }
@@ -309,16 +309,14 @@ public class GitLab extends AbstractApplication {
     return false;
   }
 
-  protected void syncProjects(GLGroup group, Map<String, GLUser> syncedUsers) {
+  protected void syncProjects(GLGroup group, Map<String, GLUser> allUsers) {
     List<GLProject> sourceProjects = client.getProjectsFromGroup(group, null, false);
     if (sourceProjects != null) {
       for (GLProject project : sourceProjects) {
         LOG.debug("Syncing user of project '{}'", project.getPath());
         List<GLUser> projectUsers = client.getProjectUsers(project);
         for (GLUser user : projectUsers) {
-
-          // Skip excluded users, admins and bots
-          if (!excludedUsers.contains(user.getUsername()) && !user.isAdmin() && !user.isBot()) {
+          if (isValidUser(allUsers.get(user.getId()))) {
             if (!group.isMember(user)) {
               LOG.warn("Removing user '{}' from project '{}' because this user is not a member of group '{}'",
                   user.getUsername(), project.getPath(), group.getPath());

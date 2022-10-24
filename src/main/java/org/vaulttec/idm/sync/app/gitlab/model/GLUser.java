@@ -32,7 +32,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GLUser {
 
-  private static final Pattern PROJECT_BOT = Pattern.compile("project_\\d+_bot");
+  private static final Pattern PROJECT_BOT = Pattern.compile("^project_\\d+_bot\\d*$");
+  private static final Pattern GROUP_BOT = Pattern.compile("^group_\\d+_bot\\d*$");
 
   private final IdpUser idpUser;
   private String id;
@@ -41,6 +42,7 @@ public class GLUser {
   private String email;
   @JsonAlias("is_admin")
   private boolean admin;
+  private Boolean bot;
   private GLState state;
   @JsonAlias("access_level")
   private GLPermission permission;
@@ -93,19 +95,27 @@ public class GLUser {
     this.email = email;
   }
 
-  public boolean isBot() {
-    if (username == null) {
-      return false;
-    }
-    return PROJECT_BOT.matcher(username).find();
-  }
-
   public boolean isAdmin() {
     return admin;
   }
 
   public void setAdmin(boolean admin) {
     this.admin = admin;
+  }
+
+  public Boolean getBot() {
+    return bot;
+  }
+
+  public void setBot(Boolean bot) {
+    this.bot = bot;
+  }
+
+  public boolean isBot() {
+    if (bot == null) {
+      return PROJECT_BOT.matcher(username).matches() || GROUP_BOT.matcher(username).matches();
+    }
+    return bot.booleanValue();
   }
 
   public GLState getState() {
