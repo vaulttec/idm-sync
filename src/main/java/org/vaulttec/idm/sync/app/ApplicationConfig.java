@@ -17,47 +17,46 @@
  */
 package org.vaulttec.idm.sync.app;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Configuration
 @ConfigurationProperties
 public class ApplicationConfig {
   private final Environment env;
-  private List<App> apps = new ArrayList<>();
+  private final AuditEventRepository eventRepository;
+  private final List<App> apps = new ArrayList<>();
 
-  ApplicationConfig(Environment env) {
+  ApplicationConfig(Environment env, AuditEventRepository eventRepository) {
     this.env = env;
+    this.eventRepository = eventRepository;
   }
 
   public List<App> getApps() {
     return apps;
   }
 
-  @Autowired
-  private AuditEventRepository eventRepository;
-
   @Bean
-  public List<Application> applications() throws InstantiationException, IllegalAccessException {
+  public List<Application> applications() throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
     List<Application> applications = new ArrayList<>(apps.size());
     for (App app : apps) {
-      applications.add(app.getFactory().newInstance().createApplication(app.getConfig(), env, eventRepository));
+      applications.add(app.getFactory().getDeclaredConstructor().newInstance().createApplication(app.getConfig(), env, eventRepository));
     }
     return applications;
   }
 
-  protected static class App {
+  public static class App {
     private Class<ApplicationFactory> factory;
-    private Map<String, String> config = new HashMap<>();
+    private final Map<String, String> config = new HashMap<>();
 
     public Class<ApplicationFactory> getFactory() {
       return factory;

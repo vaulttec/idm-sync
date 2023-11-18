@@ -17,17 +17,17 @@
  */
 package org.vaulttec.idm.sync.app.mattermost.model;
 
+import org.springframework.util.ObjectUtils;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.util.StringUtils;
 
 public enum MMRole {
   SYSTEM_ADMIN, SYSTEM_USER, TEAM_ADMIN, TEAM_USER, SYSTEM_USER_ACCESS_TOKEN, UNKNOWN;
 
   public static List<MMRole> fromJson(String jsonRoles) {
     List<MMRole> roles = new ArrayList<>();
-    if (!StringUtils.isEmpty(jsonRoles)) {
+    if (!ObjectUtils.isEmpty(jsonRoles)) {
       String[] splittedJsonRoles = jsonRoles.split(" ");
       for (String jsonRole : splittedJsonRoles) {
         try {

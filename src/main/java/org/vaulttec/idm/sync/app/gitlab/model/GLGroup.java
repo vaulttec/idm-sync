@@ -25,7 +25,7 @@ import java.util.Set;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -38,8 +38,8 @@ public class GLGroup {
   private String name;
   @JsonAlias("parent_id")
   private String parentId;
-  private Map<String, GLUser> members = new HashMap<>();
-  private MultiValueMap<GLPermission, GLUser> permissionedMembers = new LinkedMultiValueMap<>();
+  private final Map<String, GLUser> members = new HashMap<>();
+  private final MultiValueMap<GLPermission, GLUser> permissionedMembers = new LinkedMultiValueMap<>();
   private Map<String, String> statistics = new HashMap<>();
 
   public String getId() {
@@ -75,7 +75,7 @@ public class GLGroup {
   }
 
   public boolean isSubGroup() {
-    return !StringUtils.isEmpty(parentId);
+    return !ObjectUtils.isEmpty(parentId);
   }
 
   public boolean isMember(GLUser user) {

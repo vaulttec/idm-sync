@@ -17,19 +17,10 @@
  */
 package org.vaulttec.idm.sync.app.mattermost;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
+import org.springframework.util.ObjectUtils;
 import org.vaulttec.idm.sync.app.AbstractApplication;
 import org.vaulttec.idm.sync.app.mattermost.model.MMRole;
 import org.vaulttec.idm.sync.app.mattermost.model.MMTeam;
@@ -40,6 +31,9 @@ import org.vaulttec.idm.sync.idp.model.IdpGroup;
 import org.vaulttec.idm.sync.idp.model.IdpGroupRepresentation;
 import org.vaulttec.idm.sync.idp.model.IdpUser;
 import org.vaulttec.util.StringUtils;
+
+import java.util.*;
+import java.util.regex.Matcher;
 
 public class Mattermost extends AbstractApplication {
 
@@ -109,9 +103,7 @@ public class Mattermost extends AbstractApplication {
     retrieveTargetGroupsAndUsers(idpGroups, targetGroups, targetUsers);
     Map<String, MMUser> syncedUsers = syncUsers(targetUsers);
     if (syncedUsers != null) {
-      if (syncTeams(targetGroups, syncedUsers)) {
-        return true;
-      }
+        return syncTeams(targetGroups, syncedUsers);
     }
     return false;
   }
@@ -187,7 +179,7 @@ public class Mattermost extends AbstractApplication {
   protected void updateUserIdAttribute(IdpUser idpUser, MMUser mmUser) {
     String userId = idpUser.getAttribute(USER_ID_ATTRIBUTE);
     if (userId == null || !userId.equals(mmUser.getId())) {
-      idpUser.getAttributes().put(USER_ID_ATTRIBUTE, Arrays.asList(mmUser.getId()));
+      idpUser.getAttributes().put(USER_ID_ATTRIBUTE, Collections.singletonList(mmUser.getId()));
       idpUser.setAttributesModified(true);
     }
   }
@@ -213,7 +205,7 @@ public class Mattermost extends AbstractApplication {
                 sourceTeam.addMember(sourceUser, MMRole.TEAM_USER);
               }
               if (sourceTeam.getMemberRole(targetMember.getUsername()) != targetRole) {
-                if (client.updateTeamMemberRoles(sourceTeam, sourceUser, Arrays.asList(targetRole))) {
+                if (client.updateTeamMemberRoles(sourceTeam, sourceUser, Collections.singletonList(targetRole))) {
                   publishSyncEvent(MattermostEvents.userRoleUpdatedInTeam(sourceUser, sourceTeam, targetRole));
                 }
               }
@@ -250,7 +242,7 @@ public class Mattermost extends AbstractApplication {
                   publishSyncEvent(MattermostEvents.userAddedToTeam(sourceUser, newTeam));
                 }
                 if (role != MMRole.TEAM_USER
-                    && client.updateTeamMemberRoles(newTeam, sourceUser, Arrays.asList(role))) {
+                    && client.updateTeamMemberRoles(newTeam, sourceUser, Collections.singletonList(role))) {
                   publishSyncEvent(MattermostEvents.userRoleUpdatedInTeam(sourceUser, newTeam, role));
                 }
               }
@@ -327,7 +319,7 @@ public class Mattermost extends AbstractApplication {
         }
       }
     }
-    if (!StringUtils.isEmpty(globalTeam)) {
+    if (!ObjectUtils.isEmpty(globalTeam)) {
       LOG.debug("Populating global team '{}'", globalTeam);
       MMTeam mmTeam = new MMTeam();
       mmTeam.setName(globalTeam);
@@ -345,9 +337,8 @@ public class Mattermost extends AbstractApplication {
     List<MMTeam> teams = client.getTeamsWithMembers();
     for (MMTeam team : teams) {
       List<MMTeamChannel> channels = client.getTeamChannels(team);
-      int messageCount = channels.stream().mapToInt(c -> c.getMessageCount()).sum();
-      Optional<MMTeamChannel> channelWithMostMessages = channels.stream()
-          .sorted(Comparator.comparing(MMTeamChannel::getMessageCount).reversed()).findFirst();
+      int messageCount = channels.stream().mapToInt(MMTeamChannel::getMessageCount).sum();
+      Optional<MMTeamChannel> channelWithMostMessages = channels.stream().max(Comparator.comparing(MMTeamChannel::getMessageCount));
       AppStatistics groupStatistics = new AppStatistics(team.getName());
       groupStatistics.addStatistic("members", Integer.toString(team.getMembers().size()));
       groupStatistics.addStatistic("channels", Integer.toString(channels.size()));

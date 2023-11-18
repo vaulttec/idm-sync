@@ -17,6 +17,7 @@
  */
 package org.vaulttec.idm.sync.idp;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ import org.springframework.core.env.Environment;
 public class IdentityProviderConfig {
   private final Environment env;
   private Class<IdentityProviderFactory> factory;
-  private Map<String, String> config = new HashMap<>();
+  private final Map<String, String> config = new HashMap<>();
 
   IdentityProviderConfig(Environment env) {
     this.env = env;
@@ -49,10 +50,10 @@ public class IdentityProviderConfig {
   }
 
   @Bean
-  public IdentityProvider identityProvider() throws InstantiationException, IllegalAccessException {
+  public IdentityProvider identityProvider() throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
     if (factory == null) {
       throw new IllegalStateException("No identity provider factory defined in configuration");
     }
-    return factory.newInstance().createIdentityProvider(config, env);
+    return factory.getDeclaredConstructor().newInstance().createIdentityProvider(config, env);
   }
 }
