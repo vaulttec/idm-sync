@@ -41,6 +41,7 @@ import org.vaulttec.idm.sync.idp.model.IdpUser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.vaulttec.util.LinkHeader;
 
 public class KeycloakClient extends AbstractRestClient {
 
@@ -81,7 +82,8 @@ public class KeycloakClient extends AbstractRestClient {
       List<T> entities;
       ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
           uriVariables);
-      if (response.getBody().size() < perPage) {
+      LinkHeader linkHeader = LinkHeader.parse(response.getHeaders(), "first", "max");
+      if (linkHeader == null || !linkHeader.hasLink(LinkHeader.Rel.NEXT)) {
         entities = response.getBody();
       } else {
         entities = new ArrayList<>(response.getBody());
@@ -90,7 +92,8 @@ public class KeycloakClient extends AbstractRestClient {
           uriVariables.put("first", Integer.toString(first));
           response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference, uriVariables);
           entities.addAll(response.getBody());
-        } while (response.getBody().size() == perPage);
+          linkHeader = LinkHeader.parse(response.getHeaders(), "first", "max");
+        } while (linkHeader != null && linkHeader.hasLink(LinkHeader.Rel.NEXT));
         return entities;
       }
       return entities;
@@ -136,7 +139,7 @@ public class KeycloakClient extends AbstractRestClient {
       apiCall += "?search={search}";
       uriVariables.put("search", search);
     }
-    return makeReadApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
   public boolean updateUserAttributes(IdpUser user, Map<String, List<String>> attributes) {
@@ -188,7 +191,7 @@ public class KeycloakClient extends AbstractRestClient {
       apiCall += "?search={search}";
       uriVariables.put("search", search);
     }
-    return makeReadApiCall(apiCall, RESPONSE_TYPE_GROUPS, uriVariables);
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_GROUPS, uriVariables);
   }
 
   public boolean updateGroupAttributes(IdpGroup group, Map<String, List<String>> attributes) {
@@ -220,15 +223,7 @@ public class KeycloakClient extends AbstractRestClient {
     LOG.debug("Retrieving group members from group '{}", group.getPath());
     String apiCall = "/admin/realms/{realm}/groups/{groupId}/members";
     Map<String, String> uriVariables = createUriVariables("realm", realm, "groupId", group.getId());
-    return makeReadApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
-  }
-
-  @Override
-  protected void prepareAuthenticationEntity(String headerName, String headerValue) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set(headerName, headerValue);
-    authenticationEntity = new HttpEntity<String>(headers);
+    return makeReadListApiCall(apiCall, RESPONSE_TYPE_USERS, uriVariables);
   }
 
   private HttpEntity<String> createLoginEntity(String clientId, String clientSecret) {

@@ -31,7 +31,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.vaulttec.idm.sync.app.AbstractRestClient;
-import org.vaulttec.idm.sync.app.LinkHeader;
+import org.vaulttec.util.LinkHeader;
 import org.vaulttec.idm.sync.app.gitlab.model.GLGroup;
 import org.vaulttec.idm.sync.app.gitlab.model.GLPermission;
 import org.vaulttec.idm.sync.app.gitlab.model.GLProject;
@@ -71,16 +71,16 @@ public class GitLabClient extends AbstractRestClient {
       List<T> entities;
       ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, authenticationEntity, typeReference,
           uriVariables);
-      LinkHeader linkHeader = LinkHeader.parse(response.getHeaders());
+      LinkHeader linkHeader = LinkHeader.parse(response.getHeaders(), "page", "per_page");
       if (linkHeader == null || !linkHeader.hasLink(LinkHeader.Rel.NEXT)) {
         entities = response.getBody();
       } else {
         entities = new ArrayList<>(response.getBody());
         do {
-          URI nextResourceUri = linkHeader.getLink(LinkHeader.Rel.NEXT).getResourceUri();
+          URI nextResourceUri = linkHeader.getLink(LinkHeader.Rel.NEXT).resourceUri();
           response = restTemplate.exchange(nextResourceUri, HttpMethod.GET, authenticationEntity, typeReference);
           entities.addAll(response.getBody());
-          linkHeader = LinkHeader.parse(response.getHeaders());
+          linkHeader = LinkHeader.parse(response.getHeaders(), "page", "per_page");
         } while (linkHeader != null && linkHeader.hasLink(LinkHeader.Rel.NEXT));
       }
       return entities;

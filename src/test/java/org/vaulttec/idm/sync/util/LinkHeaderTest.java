@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaulttec.idm.sync.app;
+package org.vaulttec.idm.sync.util;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
-import org.vaulttec.idm.sync.app.LinkHeader.Link;
+import org.vaulttec.util.LinkHeader;
+import org.vaulttec.util.LinkHeader.Link;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,31 +36,31 @@ class LinkHeaderTest {
     HttpHeaders headers = new HttpHeaders();
     headers.add(HttpHeaders.LINK, linkValue);
 
-    LinkHeader linkHeader = LinkHeader.parse(headers);
-
+    LinkHeader linkHeader = LinkHeader.parse(headers, "page", "per_page");
     assertNotNull(linkHeader);
+
     Link link = linkHeader.getLink(LinkHeader.Rel.FIRST);
     assertNotNull(link);
-    assertEquals("/resource?page=1&per_page=100", link.getResourceUri().toString());
-    assertEquals(1, link.getPage());
-    assertEquals(100, link.getPerPage());
+    assertEquals("/resource?page=1&per_page=100", link.resourceUri().toString());
+    assertEquals(1, link.page());
+    assertEquals(100, link.perPage());
 
     link = linkHeader.getLink(LinkHeader.Rel.PREV);
     assertNotNull(link);
-    assertEquals("/resource?page=3&per_page=100", link.getResourceUri().toString());
-    assertEquals(3, link.getPage());
-    assertEquals(100, link.getPerPage());
+    assertEquals("/resource?page=3&per_page=100", link.resourceUri().toString());
+    assertEquals(3, link.page());
+    assertEquals(100, link.perPage());
 
     link = linkHeader.getLink(LinkHeader.Rel.NEXT);
     assertNotNull(link);
-    assertEquals("/resource?page=5&per_page=100", link.getResourceUri().toString());
-    assertEquals(5, link.getPage());
-    assertEquals(100, link.getPerPage());
+    assertEquals("/resource?page=5&per_page=100", link.resourceUri().toString());
+    assertEquals(5, link.page());
+    assertEquals(100, link.perPage());
 
     link = linkHeader.getLink(LinkHeader.Rel.LAST);
     assertNotNull(link);
-    assertEquals("/resource?page=50&per_page=100", link.getResourceUri().toString());
-    assertEquals(50, link.getPage());
-    assertEquals(100, link.getPerPage());
+    assertEquals("/resource?page=50&per_page=100", link.resourceUri().toString());
+    assertEquals(50, link.page());
+    assertEquals(100, link.perPage());
   }
 }
